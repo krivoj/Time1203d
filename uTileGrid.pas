@@ -1,4 +1,4 @@
-unit TileGridFMX;
+unit uTileGrid;
 
 interface
 

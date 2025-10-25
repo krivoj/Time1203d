@@ -4,7 +4,8 @@ uses
   System.StartUpCopy,
   FMX.Forms,
   Unit1 in 'Unit1.pas' {Form1},
-  TileGridFMX in 'TileGridFMX.pas';
+  uTileGrid in 'uTileGrid.pas',
+  uFieldLines in 'uFieldLines.pas';
 
 {$R *.res}
 

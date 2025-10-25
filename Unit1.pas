@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,TileGridFMX,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,uTileGrid,uFieldLines,
   FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D,FMX.Types3D,
   FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer ;
 
@@ -48,6 +48,7 @@ type
   end;
 
 var
+
   Form1: TForm1;
   BtnExit,BtnNewGame,BtnLoadGame: TButton;
   Grid: TTileGrid;
@@ -224,6 +225,8 @@ begin
   Img.HitTest := False;
 end;
 procedure TForm1.InitGame;
+var
+  FieldDrawer: TFieldDrawer;
 begin
   // Nascondi menu
   MenuLayout.Visible := False;
@@ -234,6 +237,10 @@ begin
   Reserve[1]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'panchina.bmp');
   Grid.SetBasePosition(0,0);
   Grid.SetRotationZ(0);         // verticale
+
+  FieldDrawer := TFieldDrawer.Create(Self, Viewport3D1, Grid);
+  FieldDrawer.DrawField;
+
   // Griglia di riserva sinistra (11x1)
 
   Reserve[0].SetBasePosition(0, -2);  // centrata in verticale
