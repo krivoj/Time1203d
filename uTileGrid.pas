@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Classes, System.UITypes,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Objects3D,
-  FMX.MaterialSources, FMX.Controls3D, FMX.Viewport3D, FMX.Types3D,System.Math.Vectors;
+  FMX.MaterialSources, FMX.Controls3D, FMX.Viewport3D, FMX.Types3D, System.Math.Vectors;
 
 type
   TModelTile = class
@@ -22,28 +22,27 @@ type
   TTileGrid = class
   private
     FViewport: TViewport3D;
-    FDummyRoot: TDummy;    // contenitore root della griglia
+    FDummyRoot: TDummy;
     procedure LocalMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single;
       RayPos, RayDir: TVector3D);
   public
     FTileSizeX: Single;
     FTileSizeY: Single;
     FTileDepth: Single;
-    FCols: Integer;
-    FRows: Integer;
+    FCols: Integer; // lunghezza, 18
+    FRows: Integer; // larghezza, 11
     FTiles: array of array of TModelTile;
-    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Rows, Cols:Integer;  const TextureFile: string);
+    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Cols, Rows: Integer; const TextureFile: string);
     procedure DrawGrid;
     procedure Free;
 
-    // Nuovi metodi
     procedure SetBasePosition(BaseX, BaseY: Single);
     procedure SetRotationZ(Angle: Single);
   end;
 
 implementation
 
-uses unit1;
+uses Unit1;
 
 { TModelTile }
 
@@ -85,9 +84,9 @@ end;
 
 { TTileGrid }
 
-constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Rows, Cols: integer; const TextureFile: string);
+constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Cols, Rows: Integer; const TextureFile: string);
 var
-  i, j: Integer;
+  X, Y: Integer;
   PosX, PosY: Single;
 begin
   inherited Create;
@@ -96,47 +95,53 @@ begin
   FTileSizeY := 1.0;
   FTileDepth := 0.08;
 
-  // crea dummy root
   FDummyRoot := TDummy.Create(FViewport);
   FDummyRoot.Parent := FViewport;
-  FDummyRoot.Position.Point := Point3D(0,0,0);
+  FDummyRoot.Position.Point := Point3D(0, 0, 0);
+  FDummyRoot.RotationAngle.X := 0;
+  FDummyRoot.RotationAngle.Y := 0;
+  FDummyRoot.RotationAngle.Z := 0;
 
-  FRows := Rows;
-  FCols := Cols;
-  SetLength(FTiles, FRows, FCols);
-  for i := 0 to FRows - 1 do
-    for j := 0 to FCols - 1 do
+  FCols := Cols; // lunghezza (18)
+  FRows := Rows; // larghezza (11)
+  SetLength(FTiles, FCols, FRows);
+
+  // cicli top-down, left-right
+  for Y := 0 to FRows - 1 do     // righe (0 in alto, Rows-1 in basso)
+    for X := 0 to FCols - 1 do   // colonne (0 a sinistra, Cols-1 a destra)
     begin
-      PosX := j * FTileSizeX + FTileSizeX / 2;
-      PosY := i * FTileSizeY + FTileSizeY / 2;
+      PosX := X * FTileSizeX + FTileSizeX / 2;
+      PosY := (FRows - 1 - Y) * FTileSizeY + FTileSizeY / 2; // inversione Y
 
-      FTiles[i,j] := TModelTile.Create(AOwner, FDummyRoot, TextureFile, PosX, PosY, FTileSizeX, FTileSizeY, FTileDepth);
-      FTiles[i,j].FPlane.OnMouseDown := LocalMouseDown;
-      FTiles[i,j].FPlane.HitTest := True;
+      FTiles[X, Y] := TModelTile.Create(AOwner, FDummyRoot, TextureFile, PosX, PosY, FTileSizeX, FTileSizeY, FTileDepth);
+      FTiles[X, Y].FPlane.OnMouseDown := LocalMouseDown;
+      FTiles[X, Y].FPlane.HitTest := True;
 
-      FTiles[i,j].CellX := j;
-      FTiles[i,j].CellY := i;
-
-      FTiles[i,j].FPlane.TagString := IntToStr(j)+'/'+IntToStr(i);
+      FTiles[X, Y].CellX := X;
+      FTiles[X, Y].CellY := Y;
+      FTiles[X, Y].FPlane.TagString := IntToStr(X) + '/' + IntToStr(Y);
     end;
 end;
 
 procedure TTileGrid.DrawGrid;
 var
-  i, j: Integer;
+  X, Y: Integer;
 begin
-  for i := 0 to FRows - 1 do
-    for j := 0 to FCols - 1 do
-      FTiles[i,j].SetPosition(j * FTileSizeX + FTileSizeX/2, i * FTileSizeY + FTileSizeY/2, FTileDepth / 2);
+  for Y := 0 to FRows - 1 do
+    for X := 0 to FCols - 1 do
+      FTiles[X, Y].SetPosition(X * FTileSizeX + FTileSizeX / 2,
+                               (FRows - 1 - Y) * FTileSizeY + FTileSizeY / 2,
+                               FTileDepth / 2);
 end;
 
 procedure TTileGrid.Free;
 var
-  i, j: Integer;
+  X, Y: Integer;
 begin
-  for i := 0 to FRows - 1 do
-    for j := 0 to FCols - 1 do
-      FTiles[i,j].Free;
+  for Y := 0 to FRows - 1 do
+    for X := 0 to FCols - 1 do
+      FTiles[X, Y].Free;
+
   if FDummyRoot <> nil then
   begin
     FDummyRoot.DisposeOf;
@@ -153,21 +158,21 @@ var
 begin
   Plane := TPlane(Sender);
   Cells := Plane.TagString.Split(['/'], TStringSplitOptions.ExcludeEmpty);
-  Row := StrToInt(Cells[1]); // Row
-  Col := StrToInt(Cells[0]); // Col
+  Col := StrToInt(Cells[0]);
+  Row := StrToInt(Cells[1]);
 
-  Form1.TileMouseDown(Sender, Row, Col);  // chiama la procedura del form
+  Form1.TileMouseDown(Sender, Col, Row);
 end;
 
 procedure TTileGrid.SetBasePosition(BaseX, BaseY: Single);
 var
-  i, j: Integer;
+  X, Y: Integer;
 begin
-  for i := 0 to FRows - 1 do
-    for j := 0 to FCols - 1 do
-      FTiles[i,j].SetPosition(
-        BaseX + j * FTileSizeX + FTileSizeX / 2,
-        BaseY + i * FTileSizeY + FTileSizeY / 2,
+  for Y := 0 to FRows - 1 do
+    for X := 0 to FCols - 1 do
+      FTiles[X, Y].SetPosition(
+        BaseX + X * FTileSizeX + FTileSizeX / 2,
+        BaseY + (FRows - 1 - Y) * FTileSizeY + FTileSizeY / 2,
         FTileDepth / 2
       );
 end;

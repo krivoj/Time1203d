@@ -34,6 +34,7 @@ type
     procedure SetupCameraTopView;
     procedure TileMouseDown(Sender:Tobject ; CellX,CellY: integer);
     procedure CreatePlayers;
+    procedure CreateGround;
 end;
 type
   TPlayerModel = class
@@ -60,6 +61,7 @@ var
   i, row, col: Integer;
   tile: TModelTile;
   Mat: TTextureMaterialSource ;
+  Ground: TPlane;
 implementation
 
 {$R *.fmx}
@@ -141,10 +143,10 @@ begin
   TileRight := Grid.FTiles[9, 5];
 
   // Calcolo posizione centrale tra le due celle
-  CenterY := (TileLeft.FPlane.Position.Y + TileRight.FPlane.Position.Y) / 2;
-  CenterX := TileLeft.FPlane.Position.X; // riga 5 è già quella giusta
-//  CenterX := (TileLeft.FPlane.Position.X + TileRight.FPlane.Position.X) / 2;
-//  CenterY := TileLeft.FPlane.Position.Y; // riga 5 è già quella giusta
+  //CenterY := (TileLeft.FPlane.Position.Y + TileRight.FPlane.Position.Y) / 2;
+  //CenterX := TileLeft.FPlane.Position.X; // riga 5 è già quella giusta
+  CenterX := (TileLeft.FPlane.Position.X + TileRight.FPlane.Position.X) / 2;
+  CenterY := TileLeft.FPlane.Position.Y; // riga 5 è già quella giusta
 
   // Posizionamento camera
   Camera1.Target := nil;  // Target NIL se usiamo RotationAngle
@@ -152,8 +154,8 @@ begin
   Camera1.Position.Y := CenterY;
   Camera1.Position.Z := 16.7;
 
-  Camera1.RotationAngle.X := -180;  // Vista dall'alto
-  Camera1.RotationAngle.Z := -90;  // Campo ruotato orizzontalmenteend;
+  Camera1.RotationAngle.X := 180;  // Vista dall'alto
+ // Camera1.RotationAngle.Z := -90;  // Campo ruotato orizzontalmenteend;
 end;
 procedure TForm1.TileMouseDown(Sender: TObject; CellX,CellY: integer);
 begin
@@ -237,6 +239,7 @@ begin
   Reserve[1]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'panchina.bmp');
   Grid.SetBasePosition(0,0);
   Grid.SetRotationZ(0);         // verticale
+  CreateGround;
 
   FieldDrawer := TFieldDrawer.Create(Self, Viewport3D1, Grid);
   FieldDrawer.DrawField;
@@ -344,6 +347,18 @@ procedure TPlayerModel.SetPosition(X, Y, Z: Single);
 begin
   FModel.Position.Point := Point3D(X, Y, Z);
 end;
-
+procedure TForm1.CreateGround;
+begin
+  Ground := TPlane.Create(Self);
+  Ground.Parent := Viewport3D1;
+  Ground.Width := Grid.FCols * Grid.FTileSizeX + 10;
+  Ground.Height := Grid.FRows * Grid.FTileSizeY + 10;
+  Ground.Position.Point := Point3D((Grid.FCols-1)*Grid.FTileSizeX/2,
+                                   (Grid.FRows-1)*Grid.FTileSizeY/2,
+                                   -0.01); // leggermente sotto le celle
+  Ground.MaterialSource := TTextureMaterialSource.Create(Self);
+  TTextureMaterialSource(Ground.MaterialSource).Texture.LoadFromFile('panchina.bmp');
+  Ground.HitTest := False;
+end;
 
 end.
