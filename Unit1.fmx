@@ -1,0 +1,39 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 552
+  ClientWidth = 945
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnResize = FormResize
+  DesignerMasterStyle = 0
+  object Viewport3D1: TViewport3D
+    Align = Client
+    Camera = Camera1
+    Size.Width = 945.000000000000000000
+    Size.Height = 552.000000000000000000
+    Size.PlatformDefault = False
+    UsingDesignCamera = False
+    OnMouseMove = Viewport3D1MouseMove
+    OnMouseUp = Viewport3D1MouseUp
+    OnMouseWheel = Viewport3D1MouseWheel
+    object Camera1: TCamera
+      AngleOfView = 45.000000000000000000
+      Position.Z = -5.000000000000000000
+      Width = 1.000000000000000000
+      Height = 1.000000000000000000
+      Depth = 1.000000000000000000
+    end
+    object Layout1: TLayout
+      Align = Bottom
+      Position.Y = 502.000000000000000000
+      Size.Width = 945.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+    end
+  end
+end
