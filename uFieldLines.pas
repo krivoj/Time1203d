@@ -391,43 +391,32 @@ begin
 end;
 procedure TFieldDrawer.DrawGoals;
 var
-  GoalWidth, GoalHeight: Single;
-  GoalTileLeft, GoalTileRight: uTileGrid.TModelTile;
-  TopY, BottomY, CXLeft, CXRight: Single;
-  GoalPlane: TPlane;
+  GoalLeft, GoalRight: TModel3D;
+  GoalFile: string;
+  FieldLength: Single;
 begin
-  // Dimensioni della porta
-  GoalWidth := FGrid.FTileSizeX * 0.5;  // spessore del rettangolo
-  GoalHeight := FGrid.FTileSizeY * 1;   // altezza di 3 celle
+  // Percorso del file obj
+  GoalFile := 'door.obj'; // o percorso completo
 
-  // Porta sinistra
-  GoalTileLeft := FGrid.FTiles[1,5]; // cella centrale verticale
-  CXLeft := GoalTileLeft.FPlane.Position.X - FGrid.FTileSizeX/2 - GoalWidth/2;
-  TopY := FGrid.FTiles[0,3].FPlane.Position.Y + FGrid.FTileSizeY/2;    // bordo superiore porta
-  BottomY := FGrid.FTiles[0,7].FPlane.Position.Y - FGrid.FTileSizeY/2; // bordo inferiore porta
+  // Controlla che esista
+  if not FileExists(GoalFile) then
+    raise Exception.Create('File goal.obj non trovato: ' + GoalFile);
 
-  GoalPlane := TPlane.Create(FOwner);
-  GoalPlane.Parent := FViewport;
-  GoalPlane.Width := GoalWidth;
-  GoalPlane.Height := GoalHeight;
-  GoalPlane.Position.X := CXLeft;
-  GoalPlane.Position.Y := (TopY + BottomY)/2;
-  GoalPlane.Position.Z := FZOffset;
-  GoalPlane.MaterialSource := FWhiteMat;
+ // CenterX := FGrid.FTiles[5,0].FPlane.Position.X;
+ // CenterY := FGrid.FTiles[5,17].FPlane.Position.X ;
 
-  // Porta destra
-  GoalTileRight := FGrid.FTiles[16,5];
-  CXRight := GoalTileRight.FPlane.Position.X + FGrid.FTileSizeX/2 + GoalWidth/2;
+  // Crea modello per la porta sinistra
+  GoalLeft := TModel3D.Create(FOwner);
+  GoalLeft.Parent := FViewport; // o la scena in cui disegni
+  GoalLeft.LoadFromFile(GoalFile);
+  GoalLeft.Position.Point := Point3D( FGrid.FTiles[0,5].FPlane.Position.X, FGrid.FTiles[0,5].FPlane.Position.Y,FGrid.FTiles[0,5].FPlane.Position.Z);
+  //GoalLeft.Position.Point := Point3D( FGrid.FTiles[5,17].FPlane.Position.X, FGrid.FTiles[5,17].FPlane.Position.Y,FGrid.FTiles[5,17].FPlane.Position.Z);
+  GoalLeft.RotationAngle.Y := 90; // guarda verso il campo
 
-  GoalPlane := TPlane.Create(FOwner);
-  GoalPlane.Parent := FViewport;
-  GoalPlane.Width := GoalWidth;
-  GoalPlane.Height := GoalHeight;
-  GoalPlane.Position.X := CXRight;
-  GoalPlane.Position.Y := (TopY + BottomY)/2;
-  GoalPlane.Position.Z := FZOffset;
-  GoalPlane.MaterialSource := FWhiteMat;
+
+  // Se le porte sono troppo grandi/piccole:
+//  GoalLeft.Scale.Point := Point3D(0.5, 0.5, 0.5);
+ // GoalRight.Scale.Point := Point3D(0.5, 0.5, 0.5);
 end;
-
 end.
 

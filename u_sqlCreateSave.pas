@@ -105,7 +105,6 @@ begin
 
   Conn := TFDConnection.Create(nil);
   Conn.DriverName := 'SQLite';
-  Conn.LoginPrompt := false;
   SQLScript := TStringList.Create;
   try
     Conn.DriverName := 'SQLite';

@@ -6,7 +6,8 @@ uses
   Unit1 in 'Unit1.pas' {Form1},
   uTileGrid in 'uTileGrid.pas',
   uFieldLines in 'uFieldLines.pas',
-  u_sqlCreateSave in 'u_sqlCreateSave.pas';
+  u_sqlCreateSave in 'u_sqlCreateSave.pas',
+  u_GenerateCalendar in 'u_GenerateCalendar.pas';
 
 {$R *.res}
 
