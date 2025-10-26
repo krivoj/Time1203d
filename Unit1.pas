@@ -231,6 +231,7 @@ var
   FieldDrawer: TFieldDrawer;
 begin
   // Nascondi menu
+
   MenuLayout.Visible := False;
   // Qui puoi inizializzare la griglia o altri oggetti 3D
   Viewport3D1.Visible := True;
@@ -246,11 +247,11 @@ begin
 
   // Griglia di riserva sinistra (11x1)
 
-  Reserve[0].SetBasePosition(0, -2);  // centrata in verticale
+  Reserve[0].SetBasePosition(-1, 0);  // centrata in verticale
   Reserve[0].SetRotationZ(0);         // verticale
 
   // Griglia di riserva destra (11x1)
-  Reserve[1].SetBasePosition(0, 19);
+  Reserve[1].SetBasePosition(18, 0);
   Reserve[1].SetRotationZ(0);        // verticale speculare
   CreatePlayers;
 

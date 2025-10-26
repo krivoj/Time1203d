@@ -21,6 +21,7 @@ type
     function CreateFieldLine(x1, y1, x2, y2, thickness, z: Single): TPlane;
     procedure CreateFieldRectOutline(leftX, topY, rightX, bottomY, thickness, z: Single);
     procedure DrawLargeAreaAt(TopLeftX, TopLeftY: Integer; LengthCells, WidthCells: Integer);
+    procedure DrawHalfMoons;
   public
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; AGrid: TTileGrid);
     procedure DrawField;
@@ -104,6 +105,7 @@ begin
   CreateFieldRectOutline(leftX, topY, rightX, bottomY, FLineThickness, FZOffset);
   DrawLargeAreaAt ( 1,3,3,5 )  ;
   DrawLargeAreaAt ( 14,3,3,5 )  ;
+  DrawHalfMoons;
 end;
 procedure TFieldDrawer.DrawLargeAreaAt(TopLeftX, TopLeftY: Integer; LengthCells, WidthCells: Integer);
 var
@@ -141,5 +143,66 @@ begin
   Y2 := FGrid.FTiles[TopLeftX + LengthCells - 1, TopLeftY + WidthCells - 1].FPlane.Position.Y - tileH/2;
   CreateFieldLine(X1, Y1, X2, Y2, FLineThickness, FZOffset); // DrawLineVr
 end;
+procedure TFieldDrawer.DrawHalfMoons;
+const
+  NumSegments = 36;
+  RaggioCells = 1.0;      // raggio più piccolo
+  OffsetXLeft = -0.5;     // X: sinistra verso fuori
+  OffsetXRight = +0.5;    // X: destra verso fuori
+  OffsetYLeft = -0.5;     // già regolata in alto
+  OffsetYRight = -1.5;    // già regolata in alto
+  MoveDownLeft = 0.5;     // spostamento verso basso aggiuntivo
+  MoveDownRight = 1.5;
+var
+  i: Integer;
+  AngStart, AngEnd, Step, Ang: Single;
+  CX, CY, X1, Y1, X2, Y2: Single;
+  tileW, tileH, RaggioX, RaggioY, OffsetX: Single;
+begin
+  tileW := FGrid.FTileSizeX;
+  tileH := FGrid.FTileSizeY;
+  RaggioX := tileW * RaggioCells;
+  RaggioY := tileH * RaggioCells;
+  OffsetX := RaggioX * 0.5; // piccolo offset orizzontale
+
+  // --- Mezza luna sinistra ---
+  CX := FGrid.FTiles[4, 0].FPlane.Position.X + (OffsetXLeft * tileW);
+  CY := ((FGrid.FTiles[0, 3].FPlane.Position.Y + FGrid.FTiles[0, 7].FPlane.Position.Y) / 2)
+        + (OffsetYLeft * tileH) + (MoveDownLeft * tileH); // spostamento verticale verso il basso
+
+  AngStart := -Pi / 2;
+  AngEnd := Pi / 2;
+  Step := (AngEnd - AngStart) / NumSegments;
+
+  for i := 0 to NumSegments - 1 do
+  begin
+    Ang := AngStart + i * Step;
+    X1 := CX + RaggioX * Cos(Ang);
+    Y1 := CY + RaggioY * Sin(Ang);
+    X2 := CX + RaggioX * Cos(Ang + Step);
+    Y2 := CY + RaggioY * Sin(Ang + Step);
+    CreateFieldLine(X1, Y1, X2, Y2, FLineThickness, FZOffset);
+  end;
+
+  // --- Mezza luna destra ---
+  CX := FGrid.FTiles[13, 0].FPlane.Position.X + (OffsetXRight * tileW);
+  CY := ((FGrid.FTiles[0, 3].FPlane.Position.Y + FGrid.FTiles[0, 7].FPlane.Position.Y) / 2)
+        + (OffsetYRight * tileH) + (MoveDownRight * tileH); // spostamento verticale verso il basso
+
+  AngStart := Pi / 2;
+  AngEnd := -Pi / 2;
+  Step := (AngEnd - AngStart) / NumSegments;
+
+  for i := 0 to NumSegments - 1 do
+  begin
+    Ang := AngStart + i * Step;
+    X1 := CX - RaggioX * Cos(Ang);
+    Y1 := CY + RaggioY * Sin(Ang);
+    X2 := CX - RaggioX * Cos(Ang + Step);
+    Y2 := CY + RaggioY * Sin(Ang + Step);
+    CreateFieldLine(X1, Y1, X2, Y2, FLineThickness, FZOffset);
+  end;
+end;
+
 end.
 
