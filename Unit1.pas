@@ -6,13 +6,19 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,uTileGrid,uFieldLines,
   FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D,FMX.Types3D,
-  FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer ;
+  FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer, u_SqlcreateSave,
+  FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
+  FireDAC.Phys, FireDAC.Phys.SQLite, FireDAC.Stan.Option, FireDAC.Stan.Error,
+  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
+  FireDAC.Stan.Async, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client ;
 
 type
   TForm1 = class(TForm)
     Viewport3D1: TViewport3D;
     Camera1: TCamera;
     Layout1: TLayout;
+    FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
+    FDConnection1: TFDConnection;
     procedure FormCreate(Sender: TObject);
     procedure Viewport3D1MouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
@@ -257,7 +263,7 @@ begin
 
   // Camera
   SetupCameraTopView;
-
+  SQLiteCreateSave ('d:\prova.db');
 end;
 procedure TForm1.BtnNewGameClick(Sender: TObject);
 begin

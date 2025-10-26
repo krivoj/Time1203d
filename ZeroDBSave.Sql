@@ -230,3 +230,26 @@ CREATE TABLE transfers(
   price INTEGER NOT NULL DEFAULT 0,
   actiondate TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+
+BEGIN TRANSACTION;
+
+-- DROP e CREATE di tutte le tabelle
+DROP TABLE IF EXISTS market;
+CREATE TABLE market(
+  guid INTEGER PRIMARY KEY AUTOINCREMENT,
+  guidplayer INTEGER NOT NULL DEFAULT 0,
+  name TEXT DEFAULT NULL,
+  sellprice INTEGER NOT NULL DEFAULT 0,
+  guidteam INTEGER NOT NULL DEFAULT 0
+  -- ... altri campi ...
+);
+
+-- Altre tabelle qui ...
+
+COMMIT;
+
+-- Ottimizzazione e manutenzione
+VACUUM;
+ANALYZE;
+PRAGMA foreign_keys = ON;
