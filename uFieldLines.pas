@@ -422,10 +422,10 @@ end;
 procedure TFieldDrawer.CreateGoal;
 var
   GoalFile: string;
-  GoalLeft: TModel3D;
+  GoalLeft,GoalRight: TModel3D;
   WhitePoleMaterial, GrayPoleMaterial: TColorMaterialSource;
-  NetMaterial: TTextureMaterialSource;
-  ColorBmp, AlphaBmp, NetBitmap: TBitmap;
+  NetMaterial,PoleMaterial: TTextureMaterialSource;
+  ColorBmp, AlphaBmp, NetBitmap,PoleBitmap: TBitmap;
 begin
   GoalFile := 'objSoccergoal.obj';
   if not FileExists(GoalFile) then
@@ -441,22 +441,17 @@ begin
   // --- Materiale rete con bitmap + alpha ---
   ColorBmp := TBitmap.Create;
   AlphaBmp := TBitmap.Create;
-  try
-    ColorBmp.LoadFromFile('Net.001_color.png');
-    AlphaBmp.LoadFromFile('Net.001_alpha.png');
-    NetBitmap := TBitmap.CreateFromBitmapAndMask(ColorBmp, AlphaBmp);
+  ColorBmp.LoadFromFile('Net.001_color.png');
+  AlphaBmp.LoadFromFile('Net.001_alpha.png');
+  NetBitmap := TBitmap.CreateFromBitmapAndMask(ColorBmp, AlphaBmp);
 
-    NetMaterial := TTextureMaterialSource.Create(nil);
-    NetMaterial.Parent := FViewport;
-    NetMaterial.Texture.Assign(NetBitmap);
+  NetMaterial := TTextureMaterialSource.Create(nil);
+  NetMaterial.Parent := FViewport;
+  NetMaterial.Texture.Assign(NetBitmap);
 
-  finally
-    ColorBmp.Free;
-    AlphaBmp.Free;
-    NetBitmap.Free;
-  end;
 
-  // --- Modello porta ---
+
+  // --- Modello porta 0 ---
   GoalLeft := TModel3D.Create(nil);
   GoalLeft.Parent := FViewport;
   GoalLeft.LoadFromFile(GoalFile);
@@ -475,6 +470,35 @@ begin
   GoalLeft.MeshCollection[0].MaterialSource := GrayPoleMaterial;  // palo grigio
   GoalLeft.MeshCollection[1].MaterialSource := NetMaterial;       // rete
   GoalLeft.MeshCollection[2].MaterialSource := WhitePoleMaterial; // palo bianco
+
+
+
+  // --- Modello porta 1 ---
+  GoalRight := TModel3D.Create(nil);
+  GoalRight.Parent := FViewport;
+  GoalRight.LoadFromFile(GoalFile);
+
+  GoalRight.Position.Point := Point3D(
+    FGrid.FTiles[17,5].FPlane.Position.X - 0.35,
+    FGrid.FTiles[17,5].FPlane.Position.Y,
+    FGrid.FTiles[17,5].FPlane.Position.Z + 0.5
+  );
+
+  GoalRight.RotationAngle.X := 90;
+  GoalRight.RotationAngle.Y := -90;  // guarda verso il campo
+  GoalRight.Scale.Point := Point3D(1, 1, 1);
+
+  // --- Assegna materiali ai mesh ---
+  GoalRight.MeshCollection[0].MaterialSource := GrayPoleMaterial;  // palo grigio
+  GoalRight.MeshCollection[1].MaterialSource := NetMaterial;       // rete
+  GoalRight.MeshCollection[2].MaterialSource := WhitePoleMaterial; // palo bianco
+
+
+  ColorBmp.Free;
+  AlphaBmp.Free;
+  NetBitmap.Free;
+
+
 end;
 
 
