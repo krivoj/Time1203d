@@ -1,0 +1,23 @@
+# Materiale per pole
+newmtl pole_mat
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+Ns 10
+map_Kd Pole_color.png
+
+# Materiale per pole.001
+newmtl pole_001_mat
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+Ns 10
+map_Kd pole_001_color.png
+
+# Materiale per net.001
+newmtl net_001_mat
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.000 0.000 0.000
+Ns 10
+map_Kd Net_001_color.png

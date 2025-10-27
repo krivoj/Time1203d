@@ -29,10 +29,16 @@ type
       Shift: TShiftState; X, Y: Single);
   private
     { Private declarations }
-  MenuLayout: TLayout;
+    MenuLayout: TLayout;
     BtnNewGame, BtnLoadGame, BtnExit: TSpeedButton;
     procedure InitMenu;
     procedure InitGame;
+    procedure RotateCameraLeft(Sender: TObject);
+    procedure RotateCameraRight(Sender: TObject);
+    procedure RotateCameraUp(Sender: TObject);
+    procedure RotateCameraDown(Sender: TObject);
+    procedure MoveCameraForward(Sender: TObject);
+    procedure MoveCameraBackward(Sender: TObject);
     procedure BtnNewGameClick(Sender: TObject);
     procedure BtnLoadGameClick(Sender: TObject);
     procedure BtnExitClick(Sender: TObject);  public
@@ -41,7 +47,9 @@ type
     procedure TileMouseDown(Sender:Tobject ; CellX,CellY: integer);
     procedure CreatePlayers;
     procedure CreateGround;
-end;
+  public
+    procedure InitCameraMoveControls;
+    end;
 type
   TPlayerModel = class
   private
@@ -157,10 +165,10 @@ begin
   // Posizionamento camera
   Camera1.Target := nil;  // Target NIL se usiamo RotationAngle
   Camera1.Position.X := CenterX;
-  Camera1.Position.Y := CenterY;
+  Camera1.Position.Y := CenterY-3;
   Camera1.Position.Z := 16.7;
 
-  Camera1.RotationAngle.X := 180;  // Vista dall'alto
+  Camera1.RotationAngle.X := -170;  // Vista dall'alto  180 per centrare dall'alto
  // Camera1.RotationAngle.Z := -90;  // Campo ruotato orizzontalmenteend;
 end;
 procedure TForm1.TileMouseDown(Sender: TObject; CellX,CellY: integer);
@@ -259,13 +267,13 @@ begin
 
   // 4️⃣ Libero bitmap manualmente (materiale già l’ha copiata)
   FieldBitmap.Free;
-
+  InitCameraMoveControls;
 
   Grid.SetBasePosition(-9, -5.5); // esempio per centrare 18x11 celle di 1 unit
   
   //Grid := TTileGrid.Create(Self, Viewport3D1,  18,11,  'terrain.bmp');
-  Reserve[0]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'panchina.bmp');
-  Reserve[1]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'panchina.bmp');
+  Reserve[0]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'terrain.bmp');
+  Reserve[1]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'terrain.bmp');
   Grid.SetBasePosition(0,0);
   Grid.SetRotationZ(0);         // verticale
   CreateGround;
@@ -391,8 +399,110 @@ begin
   TTextureMaterialSource(Ground.MaterialSource).Texture.LoadFromFile('panchina.bmp');
   Ground.HitTest := False;
 end;
+procedure TForm1.InitCameraMoveControls;
+var
+  LayoutCam: TLayout;
+  BtnLeft, BtnRight, BtnUp, BtnDown, BtnForward, BtnBackward: TSpeedButton;
+begin
+  // Layout per i pulsanti della camera
+  LayoutCam := TLayout.Create(Self);
+  LayoutCam.Parent := Self;
+  LayoutCam.Align := TAlignLayout.Bottom;
+  LayoutCam.Height := 80;
 
+  // --- Ruota a sinistra (Z -5°)
+  BtnLeft := TSpeedButton.Create(LayoutCam);
+  BtnLeft.Parent := LayoutCam;
+  BtnLeft.Text := '<';
+  BtnLeft.Position.X := 10;
+  BtnLeft.Position.Y := 10;
+  BtnLeft.Width := 60;
+  BtnLeft.Height := 40;
+  BtnLeft.OnClick := RotateCameraLeft;
+
+  // --- Ruota a destra (Z +5°)
+  BtnRight := TSpeedButton.Create(LayoutCam);
+  BtnRight.Parent := LayoutCam;
+  BtnRight.Text := '>';
+  BtnRight.Position.X := 80;
+  BtnRight.Position.Y := 10;
+  BtnRight.Width := 60;
+  BtnRight.Height := 40;
+  BtnRight.OnClick := RotateCameraRight;
+
+  // --- Ruota su (X -5°)
+  BtnUp := TSpeedButton.Create(LayoutCam);
+  BtnUp.Parent := LayoutCam;
+  BtnUp.Text := '↑';
+  BtnUp.Position.X := 150;
+  BtnUp.Position.Y := 10;
+  BtnUp.Width := 60;
+  BtnUp.Height := 40;
+  BtnUp.OnClick := RotateCameraUp;
+
+  // --- Ruota giù (X +5°)
+  BtnDown := TSpeedButton.Create(LayoutCam);
+  BtnDown.Parent := LayoutCam;
+  BtnDown.Text := '↓';
+  BtnDown.Position.X := 220;
+  BtnDown.Position.Y := 10;
+  BtnDown.Width := 60;
+  BtnDown.Height := 40;
+  BtnDown.OnClick := RotateCameraDown;
+
+  // --- Sposta in avanti (X positivo)
+  BtnForward := TSpeedButton.Create(LayoutCam);
+  BtnForward.Parent := LayoutCam;
+  BtnForward.Text := '>>';
+  BtnForward.Position.X := 290;
+  BtnForward.Position.Y := 10;
+  BtnForward.Width := 60;
+  BtnForward.Height := 40;
+  BtnForward.OnClick := MoveCameraForward;
+
+  // --- Sposta indietro (X negativo)
+  BtnBackward := TSpeedButton.Create(LayoutCam);
+  BtnBackward.Parent := LayoutCam;
+  BtnBackward.Text := '<<';
+  BtnBackward.Position.X := 360;
+  BtnBackward.Position.Y := 10;
+  BtnBackward.Width := 60;
+  BtnBackward.Height := 40;
+  BtnBackward.OnClick := MoveCameraBackward;
+end;
+
+procedure TForm1.RotateCameraLeft(Sender: TObject);
+begin
+  Camera1.RotationAngle.Z := Camera1.RotationAngle.Z - 5;
+end;
+
+procedure TForm1.RotateCameraRight(Sender: TObject);
+begin
+  Camera1.RotationAngle.Z := Camera1.RotationAngle.Z + 5;
+end;
+
+procedure TForm1.RotateCameraUp(Sender: TObject);
+begin
+  Camera1.RotationAngle.X := Camera1.RotationAngle.X - 5;
+end;
+
+procedure TForm1.RotateCameraDown(Sender: TObject);
+begin
+  Camera1.RotationAngle.X := Camera1.RotationAngle.X + 5;
+end;
+procedure TForm1.MoveCameraForward(Sender: TObject);
+begin
+  Camera1.Position.X := Camera1.Position.X + Grid.FTileSizeX;
+  // sposta di 1 cella in avanti
+end;
+
+procedure TForm1.MoveCameraBackward(Sender: TObject);
+begin
+  Camera1.Position.X := Camera1.Position.X - Grid.FTileSizeX;
+  // sposta di 1 cella indietro
+end;
 end.
+
 {Hai detto:
 vvar
   FieldPlane: TRectangle3D; // o TPlane3D se hai FMX 3D avanzato

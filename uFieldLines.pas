@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Math, System.Math.Vectors,
-  FMX.Types3D, FMX.Objects3D, FMX.MaterialSources, FMX.Controls3D, FMX.Viewport3D,
+  FMX.Types3D, FMX.Objects3D, FMX.MaterialSources, FMX.Controls3D, FMX.Viewport3D, FMX.Graphics, System.UIConsts,
   uTileGrid;
 
 type
@@ -27,6 +27,7 @@ type
     procedure DrawHalfwayLine;
     procedure DrawCorners;
     procedure DrawGoals;
+    procedure CreateGoalWithDynamicMaterials;
   public
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; AGrid: TTileGrid);
     procedure DrawField;
@@ -115,7 +116,8 @@ begin
   DrawCenterCircle;
   DrawHalfwayLine;
   DrawCorners;
-  //DrawGoals;
+//  DrawGoals;
+CreateGoalWithDynamicMaterials
 end;
 procedure TFieldDrawer.DrawLargeAreaAt(TopLeftX, TopLeftY: Integer; LengthCells, WidthCells: Integer);
 var
@@ -396,11 +398,11 @@ var
   FieldLength: Single;
 begin
   // Percorso del file obj
-  GoalFile := 'door.obj'; // o percorso completo
+  GoalFile := 'objSoccergoal.obj'; // o percorso completo
 
   // Controlla che esista
   if not FileExists(GoalFile) then
-    raise Exception.Create('File goal.obj non trovato: ' + GoalFile);
+    raise Exception.Create('File Soccergoal.obj non trovato: ' + GoalFile);
 
  // CenterX := FGrid.FTiles[5,0].FPlane.Position.X;
  // CenterY := FGrid.FTiles[5,17].FPlane.Position.X ;
@@ -410,13 +412,56 @@ begin
   GoalLeft.Parent := FViewport; // o la scena in cui disegni
   GoalLeft.LoadFromFile(GoalFile);
   GoalLeft.Position.Point := Point3D( FGrid.FTiles[0,5].FPlane.Position.X, FGrid.FTiles[0,5].FPlane.Position.Y,FGrid.FTiles[0,5].FPlane.Position.Z);
-  //GoalLeft.Position.Point := Point3D( FGrid.FTiles[5,17].FPlane.Position.X, FGrid.FTiles[5,17].FPlane.Position.Y,FGrid.FTiles[5,17].FPlane.Position.Z);
   GoalLeft.RotationAngle.Y := 90; // guarda verso il campo
-
-
+  //GoalLeft.MeshCollection[0].
   // Se le porte sono troppo grandi/piccole:
-//  GoalLeft.Scale.Point := Point3D(0.5, 0.5, 0.5);
- // GoalRight.Scale.Point := Point3D(0.5, 0.5, 0.5);
+  GoalLeft.Scale.Point := Point3D(1.5, 1.5, 1.5);
+//  GoalRight.Scale.Point := Point3D(0.5, 0.5, 0.5);
 end;
+procedure TFieldDrawer.CreateGoalWithDynamicMaterials;
+var
+  GoalFile: string;
+  GoalLeft: TModel3D;
+  WhitePoleMaterial, GrayPoleMaterial, NetMaterial: TColorMaterialSource;
+begin
+  GoalFile := 'objSoccergoal.obj';
+  if not FileExists(GoalFile) then
+    raise Exception.Create('File Soccergoal.obj non trovato: ' + GoalFile);
+
+  // --- Crea materiali ---
+  WhitePoleMaterial := TColorMaterialSource.Create(nil);
+  WhitePoleMaterial.Color := TAlphaColorRec.White;
+
+  GrayPoleMaterial := TColorMaterialSource.Create(nil);
+  GrayPoleMaterial.Color := TAlphaColorRec.DimGray;
+
+  NetMaterial := TColorMaterialSource.Create(nil);
+  // 30% opaco = alfa 77
+  NetMaterial.Color := MakeColor(255, 255, 255, 77);
+
+  // --- Crea modello della porta ---
+  GoalLeft := TModel3D.Create(nil);
+  GoalLeft.Parent := FViewport;
+  GoalLeft.LoadFromFile(GoalFile);
+  GoalLeft.Position.Point := Point3D(
+    FGrid.FTiles[0,5].FPlane.Position.X +0.35,
+    FGrid.FTiles[0,5].FPlane.Position.Y ,
+    FGrid.FTiles[0,5].FPlane.Position.Z +0.5
+  );
+
+  GoalLeft.RotationAngle.X := 90;
+  GoalLeft.RotationAngle.Y := 90;  // guarda verso il campo
+  GoalLeft.RotationAngle.Z := 0;
+  GoalLeft.Scale.Point := Point3D(1, 1, 1);
+
+  // --- Assegna materiali ai mesh ---
+    GoalLeft.MeshCollection[0].MaterialSource := GrayPoleMaterial;  // palo grigio
+    GoalLeft.MeshCollection[1].MaterialSource := NetMaterial;       // rete semitrasparente
+    GoalLeft.MeshCollection[2].MaterialSource := WhitePoleMaterial; // palo bianco
+
+  // Abilita trasparenza sul mesh della rete
+  GoalLeft.MeshCollection[1].Opacity := 1.0; // Opacity reale gestita dal materiale
+end;
+
 end.
 
