@@ -418,11 +418,13 @@ begin
   GoalLeft.Scale.Point := Point3D(1.5, 1.5, 1.5);
 //  GoalRight.Scale.Point := Point3D(0.5, 0.5, 0.5);
 end;
+
 procedure TFieldDrawer.CreateGoalWithDynamicMaterials;
 var
   GoalFile: string;
   GoalLeft: TModel3D;
   WhitePoleMaterial, GrayPoleMaterial, NetMaterial: TColorMaterialSource;
+
 begin
   GoalFile := 'objSoccergoal.obj';
   if not FileExists(GoalFile) then
@@ -436,8 +438,7 @@ begin
   GrayPoleMaterial.Color := TAlphaColorRec.DimGray;
 
   NetMaterial := TColorMaterialSource.Create(nil);
-  // 30% opaco = alfa 77
-  NetMaterial.Color := MakeColor(255, 255, 255, 77);
+  NetMaterial.Color := MakeColor(255, 255, 255, 77); // trasparenza leggera
 
   // --- Crea modello della porta ---
   GoalLeft := TModel3D.Create(nil);
@@ -445,22 +446,23 @@ begin
   GoalLeft.LoadFromFile(GoalFile);
   GoalLeft.Position.Point := Point3D(
     FGrid.FTiles[0,5].FPlane.Position.X +0.35,
-    FGrid.FTiles[0,5].FPlane.Position.Y ,
+    FGrid.FTiles[0,5].FPlane.Position.Y,
     FGrid.FTiles[0,5].FPlane.Position.Z +0.5
   );
-
   GoalLeft.RotationAngle.X := 90;
-  GoalLeft.RotationAngle.Y := 90;  // guarda verso il campo
+  GoalLeft.RotationAngle.Y := 90;
   GoalLeft.RotationAngle.Z := 0;
   GoalLeft.Scale.Point := Point3D(1, 1, 1);
 
-  // --- Assegna materiali ai mesh ---
-    GoalLeft.MeshCollection[0].MaterialSource := GrayPoleMaterial;  // palo grigio
-    GoalLeft.MeshCollection[1].MaterialSource := NetMaterial;       // rete semitrasparente
-    GoalLeft.MeshCollection[2].MaterialSource := WhitePoleMaterial; // palo bianco
+  // --- Assegna materiali ai mesh della porta ---
+  GoalLeft.MeshCollection[0].MaterialSource := GrayPoleMaterial;  // palo grigio
+  GoalLeft.MeshCollection[1].MaterialSource := NetMaterial;       // rete semitrasparente
+  GoalLeft.MeshCollection[2].MaterialSource := WhitePoleMaterial; // palo bianco
 
-  // Abilita trasparenza sul mesh della rete
-  GoalLeft.MeshCollection[1].Opacity := 1.0; // Opacity reale gestita dal materiale
+  GoalLeft.MeshCollection[1].Opacity := 1.0;
+
+  // --- Crea rete tridimensionale intrecciata senza cambiare posizione porta ---
+
 end;
 
 end.
