@@ -235,13 +235,35 @@ end;
 procedure TForm1.InitGame;
 var
   FieldDrawer: TFieldDrawer;
+  FieldBitmap: TBitmap;
 begin
   // Nascondi menu
 
   MenuLayout.Visible := False;
   // Qui puoi inizializzare la griglia o altri oggetti 3D
   Viewport3D1.Visible := True;
-  Grid := TTileGrid.Create(Self, Viewport3D1,  18,11,  'terrain.bmp');
+
+// creo bitmap dinamica
+// 1️⃣ Creo bitmap dinamica del campo
+  FieldBitmap := CreateSoccerFieldBitmap(
+    512, 512,
+    TAlphaColorRec.Green,
+    TAlphaColorRec.Darkgreen,
+    10, 10, 10, 10);
+
+  // 2️⃣ Creo la griglia direttamente passando la bitmap
+  Grid := TTileGrid.Create(Self, Viewport3D1, 18, 11, FieldBitmap);
+
+  // 3️⃣ Posiziono la griglia (opzionale)
+  Grid.SetBasePosition(-9, -5.5);
+
+  // 4️⃣ Libero bitmap manualmente (materiale già l’ha copiata)
+  FieldBitmap.Free;
+
+
+  Grid.SetBasePosition(-9, -5.5); // esempio per centrare 18x11 celle di 1 unit
+  
+  //Grid := TTileGrid.Create(Self, Viewport3D1,  18,11,  'terrain.bmp');
   Reserve[0]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'panchina.bmp');
   Reserve[1]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'panchina.bmp');
   Grid.SetBasePosition(0,0);
@@ -371,3 +393,45 @@ begin
 end;
 
 end.
+{Hai detto:
+vvar
+  FieldPlane: TRectangle3D; // o TPlane3D se hai FMX 3D avanzato
+begin
+  FieldPlane := TRectangle3D.Create(Self);
+  FieldPlane.Width := FieldWidth;
+  FieldPlane.Height := FieldHeight;
+  FieldPlane.MaterialSource := FieldMaterial; // bitmap del campo
+  FieldPlane.Position.Z := -0.1; // leggermente sotto la griglia
+  Viewport3D1.AddObject(FieldPlane);
+end;
+
+
+
+TileWidth := FieldWidth / 18;
+TileHeight := FieldHeight / 11;
+procedure HighlightCell(X, Y: Integer; Color: TAlphaColor);
+var
+  HighlightPlane: TRectangle3D;
+begin
+  HighlightPlane := TRectangle3D.Create(Self);
+  HighlightPlane.Width := TileWidth;
+  HighlightPlane.Height := TileHeight;
+  HighlightPlane.Position.X := X * TileWidth + TileWidth/2;
+  HighlightPlane.Position.Y := Y * TileHeight + TileHeight/2;
+  HighlightPlane.Position.Z := 0.1; // leggermente sopra il piano del campo
+  HighlightPlane.MaterialSource := TColorMaterialSource.Create(Self);
+  TColorMaterialSource(HighlightPlane.MaterialSource).Color := Color;
+  HighlightPlane.Opacity := 0.5; // trasparente
+  Viewport3D1.AddObject(HighlightPlane);
+end;
+
+procedure ClearHighlights;
+var
+  i: Integer;
+begin
+  for i := 0 to HighlightPlanes.Count-1 do
+    HighlightPlanes[i].Free;
+  HighlightPlanes.Clear;
+end;
+
+

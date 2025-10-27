@@ -115,7 +115,7 @@ begin
   DrawCenterCircle;
   DrawHalfwayLine;
   DrawCorners;
-  DrawGoals;
+  //DrawGoals;
 end;
 procedure TFieldDrawer.DrawLargeAreaAt(TopLeftX, TopLeftY: Integer; LengthCells, WidthCells: Integer);
 var
