@@ -6,11 +6,11 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,uTileGrid,uFieldLines,
   FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D,FMX.Types3D,
-  FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer, u_SqlcreateSave, u_GenerateCalendar,
+  FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer, u_SqlcreateSave, math,
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
-  FireDAC.Phys, FireDAC.Phys.SQLite, FireDAC.Stan.Option, FireDAC.Stan.Error,
-  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
-  FireDAC.Stan.Async, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client ;
+  FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
+  FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client;
 
 type
   TForm1 = class(TForm)
@@ -44,6 +44,7 @@ type
     procedure BtnExitClick(Sender: TObject);  public
     { Public declarations }
     procedure SetupCameraTopView;
+    procedure SetupFieldLights;
     procedure TileMouseDown(Sender:Tobject ; CellX,CellY: integer);
     procedure CreatePlayers;
     procedure CreateGround;
@@ -145,6 +146,89 @@ begin
 
   Camera1.Position.Z := MaxDim;  // alza o abbassa la camera per adattare tutta la griglia
 end;
+procedure TForm1.SetupFieldLights;
+var
+  SunLight: TLight;
+  i, X, Y, XMax, YMax: Integer;
+  Positions: array[0..3] of TPoint3D;
+  SpotPlane: TPlane;
+  LightMat, TileMat: TLightMaterialSource;
+  Tile: TModelTile;
+  Obj: TFmxObject;
+  Mesh: TMesh;
+  Plane: TPlane;
+  OffsetY: Single;
+begin
+  XMax := Grid.FCols - 1;
+  YMax := Grid.FRows - 1;
+  OffsetY := Grid.FTileDepth / 2 + 0.5; // rialzo leggero per i fari
+
+  // ==== MATERIALI CELLE ====
+  TileMat := TLightMaterialSource.Create(Self);
+  TileMat.Parent := Self;
+  TileMat.Diffuse := TAlphaColorRec.Green;
+  TileMat.Specular := TAlphaColorRec.White;
+  TileMat.Shininess := 150;
+
+  for Y := 0 to YMax do
+    for X := 0 to XMax do
+    begin
+      Tile := Grid.FTiles[X, Y];
+      Tile.FPlane.MaterialSource := TileMat;
+    end;
+
+  // ==== ASSEGNA IL MATERIALE A TUTTI I MESH E PIANI DELLA VIEWPORT ====
+  for i := 0 to Viewport3D1.ChildrenCount - 1 do
+  begin
+    Obj := Viewport3D1.Children[i];
+    if Obj is TMesh then
+    begin
+      Mesh := TMesh(Obj);
+      Mesh.MaterialSource := TileMat;
+    end
+    else if Obj is TPlane then
+    begin
+      Plane := TPlane(Obj);
+      Plane.MaterialSource := TileMat;
+    end;
+  end;
+
+  // ==== LUCE SOLARE DIREZIONALE ====
+  SunLight := TLight.Create(Viewport3D1);
+  SunLight.Parent := Viewport3D1;
+  SunLight.LightType := TLightType.Directional;
+  SunLight.Position.Point := Camera1.Position.Point;
+  SunLight.RotationAngle := Camera1.RotationAngle;
+  SunLight.RotationCenter.Point := Point3D(0,0,0);
+  SunLight.Color := TAlphaColorF.Create(1.0,0.98,0.9,1).ToAlphaColor;
+  SunLight.Name := 'SunLight';
+
+  // ==== POSIZIONI FARI (angoli griglia) ====
+  Positions[0] := Point3D(Grid.FTiles[0,0].FPlane.Position.X, OffsetY, Grid.FTiles[0,0].FPlane.Position.Y);
+  Positions[1] := Point3D(Grid.FTiles[XMax,0].FPlane.Position.X, OffsetY, Grid.FTiles[XMax,0].FPlane.Position.Y);
+  Positions[2] := Point3D(Grid.FTiles[0,YMax].FPlane.Position.X, OffsetY, Grid.FTiles[0,YMax].FPlane.Position.Y);
+  Positions[3] := Point3D(Grid.FTiles[XMax,YMax].FPlane.Position.X, OffsetY, Grid.FTiles[XMax,YMax].FPlane.Position.Y);
+
+  // ==== CREAZIONE PIANI SEMITRASPARENTI PER FARI ====
+  for i := 0 to 3 do
+  begin
+    SpotPlane := TPlane.Create(Viewport3D1);
+    SpotPlane.Parent := Viewport3D1;
+    SpotPlane.Width := 20;
+    SpotPlane.Height := 20;
+    SpotPlane.Position.Point := Positions[i];
+    SpotPlane.RotationAngle.X := -90;
+
+    LightMat := TLightMaterialSource.Create(Self);
+    LightMat.Parent := Self;
+    LightMat.Diffuse := TAlphaColorF.Create(1,1,0.8,0.3).ToAlphaColor;
+    LightMat.Specular := TAlphaColorRec.White;
+    LightMat.Shininess := 150;
+
+    SpotPlane.MaterialSource := LightMat;
+  end;
+end;
+
 procedure TForm1.SetupCameraTopView;
 var
   TileLeft, TileRight: TModelTile;
@@ -293,6 +377,7 @@ begin
 
   // Camera
   SetupCameraTopView;
+  //SetupFieldLights;
   //SQLiteCreateSave ('d:\prova.db');
   //GenerateCalendar(MainConn, SaveDbConn: TFDConnection);
 

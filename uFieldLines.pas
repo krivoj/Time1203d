@@ -27,7 +27,7 @@ type
     procedure DrawHalfwayLine;
     procedure DrawCorners;
     procedure DrawGoals;
-    procedure CreateGoalWithDynamicMaterials;
+    procedure CreateGoal;
   public
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; AGrid: TTileGrid);
     procedure DrawField;
@@ -117,7 +117,7 @@ begin
   DrawHalfwayLine;
   DrawCorners;
 //  DrawGoals;
-CreateGoalWithDynamicMaterials
+CreateGoal;
 end;
 procedure TFieldDrawer.DrawLargeAreaAt(TopLeftX, TopLeftY: Integer; LengthCells, WidthCells: Integer);
 var
@@ -419,51 +419,64 @@ begin
 //  GoalRight.Scale.Point := Point3D(0.5, 0.5, 0.5);
 end;
 
-procedure TFieldDrawer.CreateGoalWithDynamicMaterials;
+procedure TFieldDrawer.CreateGoal;
 var
   GoalFile: string;
   GoalLeft: TModel3D;
-  WhitePoleMaterial, GrayPoleMaterial, NetMaterial: TColorMaterialSource;
-
+  WhitePoleMaterial, GrayPoleMaterial: TColorMaterialSource;
+  NetMaterial: TTextureMaterialSource;
+  ColorBmp, AlphaBmp, NetBitmap: TBitmap;
 begin
   GoalFile := 'objSoccergoal.obj';
   if not FileExists(GoalFile) then
     raise Exception.Create('File Soccergoal.obj non trovato: ' + GoalFile);
 
-  // --- Crea materiali ---
+  // --- Materiali pali ---
   WhitePoleMaterial := TColorMaterialSource.Create(nil);
   WhitePoleMaterial.Color := TAlphaColorRec.White;
 
   GrayPoleMaterial := TColorMaterialSource.Create(nil);
   GrayPoleMaterial.Color := TAlphaColorRec.DimGray;
 
-  NetMaterial := TColorMaterialSource.Create(nil);
-  NetMaterial.Color := MakeColor(255, 255, 255, 77); // trasparenza leggera
+  // --- Materiale rete con bitmap + alpha ---
+  ColorBmp := TBitmap.Create;
+  AlphaBmp := TBitmap.Create;
+  try
+    ColorBmp.LoadFromFile('Net.001_color.png');
+    AlphaBmp.LoadFromFile('Net.001_alpha.png');
+    NetBitmap := TBitmap.CreateFromBitmapAndMask(ColorBmp, AlphaBmp);
 
-  // --- Crea modello della porta ---
+    NetMaterial := TTextureMaterialSource.Create(nil);
+    NetMaterial.Parent := FViewport;
+    NetMaterial.Texture.Assign(NetBitmap);
+
+  finally
+    ColorBmp.Free;
+    AlphaBmp.Free;
+    NetBitmap.Free;
+  end;
+
+  // --- Modello porta ---
   GoalLeft := TModel3D.Create(nil);
   GoalLeft.Parent := FViewport;
   GoalLeft.LoadFromFile(GoalFile);
+
   GoalLeft.Position.Point := Point3D(
-    FGrid.FTiles[0,5].FPlane.Position.X +0.35,
+    FGrid.FTiles[0,5].FPlane.Position.X + 0.35,
     FGrid.FTiles[0,5].FPlane.Position.Y,
-    FGrid.FTiles[0,5].FPlane.Position.Z +0.5
+    FGrid.FTiles[0,5].FPlane.Position.Z + 0.5
   );
+
   GoalLeft.RotationAngle.X := 90;
-  GoalLeft.RotationAngle.Y := 90;
-  GoalLeft.RotationAngle.Z := 0;
+  GoalLeft.RotationAngle.Y := 90;  // guarda verso il campo
   GoalLeft.Scale.Point := Point3D(1, 1, 1);
 
-  // --- Assegna materiali ai mesh della porta ---
+  // --- Assegna materiali ai mesh ---
   GoalLeft.MeshCollection[0].MaterialSource := GrayPoleMaterial;  // palo grigio
-  GoalLeft.MeshCollection[1].MaterialSource := NetMaterial;       // rete semitrasparente
+  GoalLeft.MeshCollection[1].MaterialSource := NetMaterial;       // rete
   GoalLeft.MeshCollection[2].MaterialSource := WhitePoleMaterial; // palo bianco
-
-  GoalLeft.MeshCollection[1].Opacity := 1.0;
-
-  // --- Crea rete tridimensionale intrecciata senza cambiare posizione porta ---
-
 end;
+
 
 end.
 
