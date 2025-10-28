@@ -27,7 +27,6 @@ type
     procedure DrawHalfwayLine;
     procedure DrawCorners;
     procedure DrawGoals;
-    procedure CreateGoal;
   public
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; AGrid: TTileGrid);
     procedure DrawField;
@@ -116,8 +115,8 @@ begin
   DrawCenterCircle;
   DrawHalfwayLine;
   DrawCorners;
-//  DrawGoals;
-CreateGoal;
+  DrawGoals;
+
 end;
 procedure TFieldDrawer.DrawLargeAreaAt(TopLeftX, TopLeftY: Integer; LengthCells, WidthCells: Integer);
 var
@@ -391,35 +390,8 @@ begin
     CreateFieldLine(X1,Y1,X2,Y2,FLineThickness,FZOffset);
   end;
 end;
+
 procedure TFieldDrawer.DrawGoals;
-var
-  GoalLeft, GoalRight: TModel3D;
-  GoalFile: string;
-  FieldLength: Single;
-begin
-  // Percorso del file obj
-  GoalFile := 'objSoccergoal.obj'; // o percorso completo
-
-  // Controlla che esista
-  if not FileExists(GoalFile) then
-    raise Exception.Create('File Soccergoal.obj non trovato: ' + GoalFile);
-
- // CenterX := FGrid.FTiles[5,0].FPlane.Position.X;
- // CenterY := FGrid.FTiles[5,17].FPlane.Position.X ;
-
-  // Crea modello per la porta sinistra
-  GoalLeft := TModel3D.Create(FOwner);
-  GoalLeft.Parent := FViewport; // o la scena in cui disegni
-  GoalLeft.LoadFromFile(GoalFile);
-  GoalLeft.Position.Point := Point3D( FGrid.FTiles[0,5].FPlane.Position.X, FGrid.FTiles[0,5].FPlane.Position.Y,FGrid.FTiles[0,5].FPlane.Position.Z);
-  GoalLeft.RotationAngle.Y := 90; // guarda verso il campo
-  //GoalLeft.MeshCollection[0].
-  // Se le porte sono troppo grandi/piccole:
-  GoalLeft.Scale.Point := Point3D(1.5, 1.5, 1.5);
-//  GoalRight.Scale.Point := Point3D(0.5, 0.5, 0.5);
-end;
-
-procedure TFieldDrawer.CreateGoal;
 var
   GoalFile: string;
   GoalLeft,GoalRight: TModel3D;
