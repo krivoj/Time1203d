@@ -18,7 +18,6 @@ object Form1: TForm1
     Size.PlatformDefault = False
     UsingDesignCamera = False
     OnMouseMove = Viewport3D1MouseMove
-    OnMouseUp = Viewport3D1MouseUp
     OnMouseWheel = Viewport3D1MouseWheel
     object Camera1: TCamera
       AngleOfView = 45.000000000000000000

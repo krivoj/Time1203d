@@ -31,6 +31,8 @@ type
     FDefaultMaterial: TTextureMaterialSource;
     procedure LocalMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
       X, Y: Single; RayPos, RayDir: TVector3D);
+    procedure LocalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+      X, Y: Single; RayPos, RayDir: TVector3D);
     procedure InitializeGrid(AOwner: TComponent; Cols, Rows: Integer;
       const TextureFiles: TStringArray2D; SharedMaterial: TTextureMaterialSource);
   public
@@ -220,6 +222,7 @@ begin
         PosX, PosY, FTileSizeX, FTileSizeY, FTileDepth);
 
       FTiles[X, Y].FPlane.OnMouseDown := LocalMouseDown;
+      FTiles[X, Y].FPlane.OnMouseUp := LocalMouseUp;
       FTiles[X, Y].FPlane.HitTest := True;
       FTiles[X, Y].CellX := X;
       FTiles[X, Y].CellY := Y;
@@ -279,6 +282,20 @@ begin
   Row := StrToInt(Cells[1]);
 
   Form1.TileMouseDown(Sender, Col, Row);
+end;
+procedure TTileGrid.LocalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+  X, Y: Single; RayPos, RayDir: TVector3D);
+var
+  Cells: TArray<string>;
+  Col, Row: Integer;
+  Plane: TPlane;
+begin
+  Plane := TPlane(Sender);
+  Cells := Plane.TagString.Split(['/'], TStringSplitOptions.ExcludeEmpty);
+  Col := StrToInt(Cells[0]);
+  Row := StrToInt(Cells[1]);
+
+  Form1.TileMouseUp(Sender, Col, Row);
 end;
 
 procedure TTileGrid.SetBasePosition(BaseX, BaseY: Single);

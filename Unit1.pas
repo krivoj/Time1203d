@@ -23,8 +23,6 @@ type
     procedure FormResize(Sender: TObject);
     procedure Viewport3D1MouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Single);
-    procedure Viewport3D1MouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Single);
   private
     { Private declarations }
     MenuLayout: TLayout;
@@ -44,6 +42,9 @@ type
     procedure SetupCameraTopView;
     procedure SetupFieldLights;
     procedure TileMouseDown(Sender:Tobject ; CellX,CellY: integer);
+    procedure TileMouseUp(Sender:Tobject ; CellX,CellY: integer);
+    function GetPlayerModelFromBoard ( CellX, CellY: integer): TModel3D;
+
     procedure CreatePlayers;
     procedure CreateGround;
   public
@@ -53,6 +54,8 @@ type
   TPlayerModel = class
   private
     FModel: TModel3D;
+    FCellX: Integer;
+    FCellY: Integer;
   public
     constructor Create(AOwner: TComponent; AViewport: TViewport3D;
                        const ObjPath: string; const ATexture: TTextureMaterialSource;
@@ -63,6 +66,8 @@ type
                                          InitX, InitY: Single);
     procedure SetPosition(X, Y, Z: Single);
     procedure Free;
+    property CellX: integer read FCellX write FCellX;
+    property CellY: integer read FCellY write FCellY;
   end;
 
 var
@@ -71,7 +76,7 @@ var
   BtnExit,BtnNewGame,BtnLoadGame: TButton;
   Grid: TTileGrid;
   Reserve : Array[0..1] of TTileGrid;
-  DraggingTile: TModelTile;
+  DraggingPlayer: TModel3D;
   StartMouse: TPointF;
   StartTilePos: TPoint3D;
   Players: array[0..21] of TPlayerModel;
@@ -101,19 +106,14 @@ procedure TForm1.Viewport3D1MouseMove(Sender: TObject; Shift: TShiftState; X,
 var
   Delta: TPointF;
 begin
-  if (DraggingTile <> nil) and (ssLeft in Shift) then
+  if (DraggingPlayer <> nil ) and ( ssLeft in Shift) then
   begin
     Delta := Screen.MousePos - StartMouse;
 
     // movimento semplice in X-Y (piano vista dall'alto)
-    DraggingTile.FPlane.Position.X := StartTilePos.X + Delta.X * 0.02;
-    DraggingTile.FPlane.Position.Y := StartTilePos.Y + Delta.Y * 0.02;
+    DraggingPlayer.Position.X := StartTilePos.X + Delta.X * 0.02;
+    DraggingPlayer.Position.Y := StartTilePos.Y + Delta.Y * 0.02;
   end;
-end;
-procedure TForm1.Viewport3D1MouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Single);
-begin
-DraggingTile := nil;
 end;
 
 procedure TForm1.Viewport3D1MouseWheel(Sender: TObject; Shift: TShiftState;
@@ -259,11 +259,34 @@ begin
 end;
 procedure TForm1.TileMouseDown(Sender: TObject; CellX,CellY: integer);
 begin
+  //DraggingPLayer := Grid.FTiles[CellX, CellY]; // memorizzo la tile
+  DraggingPLayer := GetPlayerModelFromBoard (CellX, CellY);
+  StartMouse := Screen.MousePos;        // posizione iniziale mouse
+  StartTilePos := DraggingPLayer.Position.Point; // posizione iniziale tile
+//  ShowMessage(Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]));
+end;
+procedure TForm1.TileMouseUp(Sender: TObject; CellX,CellY: integer);
+var
+  TargetTile: TModelTile;
+begin
 
-  //DraggingTile := Grid.FTiles[CellX, CellY]; // memorizzo la tile
-  //StartMouse := Screen.MousePos;        // posizione iniziale mouse
-  //StartTilePos := DraggingTile.FPlane.Position.Point; // posizione iniziale tile
-  ShowMessage(Format('Hai cliccato la cella Col=%d Row=%d', [CellX, CellY]));
+  //ShowMessage(Format('Hai cliccato UP la cella Col=%d Row=%d', [CellX, CellY]));
+
+  if DraggingPLayer <> nil then
+  begin
+    // Trova la cella su cui abbiamo rilasciato
+
+      // Allinea la posizione alla cella di destinazione
+      DraggingPLayer.Position.X := TPlane(Sender).Position.X;
+      DraggingPLayer.Position.Y := TPlane(Sender).Position.Y;
+      // se non hai rilasciato sopra nessuna cella, torna alla posizione iniziale
+//      DraggingTile.FPlane.Position.Point := StartTilePos;
+
+    // riporta a Z = 0
+    DraggingPLayer.Position.Z := 0.42;
+    DraggingPLayer := nil;
+  end;
+
 end;
 
 procedure TForm1.InitMenu;
@@ -424,16 +447,19 @@ begin
   FTexture0.Parent := Viewport3D1;
   //FTexture.Texture.LoadFromFile('texture_diffuse.bmp'); // nel caso di ca_deer
   //FTexture0.Texture.LoadFromFile('mix.bmp'); // nel caso di ca_deer
-  FTexture0.Texture.LoadFromFile('mix.bmp'); // nel caso di ca_deer
+  FTexture0.Texture.LoadFromFile('mix2.bmp'); // nel caso di ca_deer
 
 
   ModifyPixels(FTexture0.Texture.Canvas.Bitmap, TAlphaColorRec.Blue , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Yellow ,TAlphaColorRec.red, TAlphaColorRec.Aqua );
 
-  for I := 0 to 10 do
+  for I := 0 to 10 do begin
     Players[I] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
                                       BaseModel, FTexture0,
                                       Grid.FTiles[0, I].FPlane.Position.X,
-                                      Grid.FTiles[0, I].FPlane.Position.Y);
+                                      Grid.FTiles[0, I].FPlane.Position.Y );
+    Players[I].CellX := 0;
+    Players[I].CellY := I;
+  end;
 
   // BLU
 // Crea materiale testurizzato
@@ -441,11 +467,18 @@ begin
   FTexture1.Parent := Viewport3D1;
   FTexture1.Texture.LoadFromFile('MIX2.bmp'); // nel caso di ca_deer
   ModifyPixels(FTexture1.Texture.Canvas.Bitmap, TAlphaColorRec.Blue , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Yellow ,TAlphaColorRec.red, TAlphaColorRec.Aqua );
-  for I := 0 to 10 do
+  for I := 0 to 10 do begin
     Players[I+11] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
                                          BaseModel, FTexture1,
                                          Grid.FTiles[17, I].FPlane.Position.X,
                                          Grid.FTiles[17, I].FPlane.Position.Y);
+
+    Players[I].CellX := 0;
+    Players[I].CellY := I;
+  end;
+
+
+  Players[3].SetPosition(Grid.FTiles[15, 4].FPlane.Position.Point.X, Grid.FTiles[15, 4].FPlane.Position.Point.Y, 0.42);
 
 
 end;
@@ -627,6 +660,21 @@ begin
   Camera1.Position.X := Camera1.Position.X - Grid.FTileSizeX;
   // sposta di 1 cella indietro
 end;
+
+function TForm1.GetPlayerModelFromBoard ( CellX, CellY: integer): TModel3D;
+var
+  i: integer;
+begin
+  for i := 0 to High(Players) do begin
+    if (Players[i].CellX = CellX) and (Players[i].CellY = CellY)  then begin
+      Result := Players[i].FModel;
+      Exit;
+    end;
+  end;
+
+end;
+
+
 end.
 
 {Hai detto:
