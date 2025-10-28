@@ -426,6 +426,9 @@ begin
   //FTexture0.Texture.LoadFromFile('mix.bmp'); // nel caso di ca_deer
   FTexture0.Texture.LoadFromFile('mix.bmp'); // nel caso di ca_deer
 
+
+  ModifyPixels(FTexture0.Texture.Canvas.Bitmap, TAlphaColorRec.Blue , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Yellow ,TAlphaColorRec.red, TAlphaColorRec.Aqua );
+
   for I := 0 to 10 do
     Players[I] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
                                       BaseModel, FTexture0,
@@ -437,6 +440,7 @@ begin
   FTexture1 := TTextureMaterialSource.Create(Self);
   FTexture1.Parent := Viewport3D1;
   FTexture1.Texture.LoadFromFile('MIX2.bmp'); // nel caso di ca_deer
+  ModifyPixels(FTexture1.Texture.Canvas.Bitmap, TAlphaColorRec.Blue , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Yellow ,TAlphaColorRec.red, TAlphaColorRec.Aqua );
   for I := 0 to 10 do
     Players[I+11] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
                                          BaseModel, FTexture1,

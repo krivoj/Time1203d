@@ -2,9 +2,11 @@ unit u_SystemUtils;
 
 interface
 uses
-  Winapi.Windows, Winapi.ShLwApi, System.SysUtils, SHlObj;
+  Winapi.Windows, Winapi.ShLwApi, System.SysUtils, SHlObj, FMX.Graphics, System.UITypes;
 
 function GetLocalAppDataPath: string;
+procedure ModifyPixels(const Bitmap: TBitmap; Color1From, Color1To,Color2From, Color2To,Color3From, Color3To: TAlphaColor );
+
 implementation
 function GetLocalAppDataPath: string;
 var
@@ -14,5 +16,27 @@ begin
     Result := Path
   else
     Result := '';
+end;
+
+procedure ModifyPixels(const Bitmap: TBitmap; Color1From, Color1To,Color2From, Color2To,Color3From, Color3To: tAlphaColor );
+var
+  Data: TBitmapData;
+  Pixel: TAlphaColor;
+  x,y: integer;
+begin
+  if Bitmap.Map(TMapAccess.ReadWrite, Data) then
+  try
+    for y := 0 to Bitmap.Height - 1 do
+      for x := 0 to Bitmap.Width - 1 do
+      begin
+        Pixel := Data.GetPixel(x, y);
+        // Esempio: inverti i colori
+        if Pixel = Color1From then
+          Pixel := Color1To;
+        Data.SetPixel(x, y, Pixel);
+      end;
+  finally
+    Bitmap.Unmap(Data);
+  end;
 end;
 end.
