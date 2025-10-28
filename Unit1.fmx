@@ -36,14 +36,4 @@ object Form1: TForm1
       TabOrder = 0
     end
   end
-  object FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink
-    Left = 800
-    Top = 456
-  end
-  object FDConnection1: TFDConnection
-    Params.Strings = (
-      'DriverID=SQLite')
-    Left = 672
-    Top = 456
-  end
 end

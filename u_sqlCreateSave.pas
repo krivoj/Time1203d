@@ -100,6 +100,10 @@ var
   Cmd: string;
   FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
 begin
+  // Se il file esiste e vuoi ricrearlo
+    if FileExists(DBFile) then
+      DeleteFile(DBFile);
+
   FDPhysSQLiteDriverLink1:= TFDPhysSQLiteDriverLink.Create(nil);
 
 
@@ -132,7 +136,6 @@ begin
       end;
     end;
 
-    Writeln('Database creato con successo.');
   finally
     SQLScript.Free;
     Conn.Free;

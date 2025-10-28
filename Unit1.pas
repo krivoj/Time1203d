@@ -10,15 +10,13 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
-  FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client;
+  FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,u_SystemUtils,System.IOUtils;
 
 type
   TForm1 = class(TForm)
     Viewport3D1: TViewport3D;
     Camera1: TCamera;
     Layout1: TLayout;
-    FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
-    FDConnection1: TFDConnection;
     procedure FormCreate(Sender: TObject);
     procedure Viewport3D1MouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
@@ -378,13 +376,18 @@ begin
   // Camera
   SetupCameraTopView;
   //SetupFieldLights;
-  //SQLiteCreateSave ('d:\prova.db');
-  //GenerateCalendar(MainConn, SaveDbConn: TFDConnection);
 
 end;
 procedure TForm1.BtnNewGameClick(Sender: TObject);
+var
+  DBFile: string;
 begin
-  InitGame;
+  DBFile := GetLocalAppDataPath;
+  ForceDirectories(DBFile + '\Time120\');
+  DBFile := GetLocalAppDataPath + '\Time120\Save0.sqlite';
+  SQLiteCreateSave(DBFile);
+//  GenerateCalendar ( Conn1, Conn2, nomefile );
+  //InitGame;
 end;
 
 procedure TForm1.BtnLoadGameClick(Sender: TObject);

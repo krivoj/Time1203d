@@ -18,22 +18,24 @@ type
   TPairInt64 = TPair<Int64, Int64>;
   TRound = TList<TPairInt64>;
   TRounds = TList<TRound>;
-  var
+
+var
   RandGen: TtdCombinedPRNG;
 
-  function RndGenerate( Upper: integer ): integer;
+  function RndGenerate(Upper: Integer): Integer;
   begin
-    Result := Trunc(RandGen.AsLimitedDouble (1, Upper + 1));
-  end;
-  function RndGenerate0( Upper: integer ): integer;
-  begin
-    Result := Trunc(RandGen.AsLimitedDouble (0, Upper + 1));
-  end;
-  function RndGenerateRange( Lower, Upper: integer ): integer;
-  begin
-    Result := Trunc(RandGen.AsLimitedDouble (Lower, Upper + 1));
+    Result := Trunc(RandGen.AsLimitedDouble(1, Upper + 1));
   end;
 
+  function RndGenerate0(Upper: Integer): Integer;
+  begin
+    Result := Trunc(RandGen.AsLimitedDouble(0, Upper + 1));
+  end;
+
+  function RndGenerateRange(Lower, Upper: Integer): Integer;
+  begin
+    Result := Trunc(RandGen.AsLimitedDouble(Lower, Upper + 1));
+  end;
 
 // ----------------------------- helpers -------------------------------------
 
@@ -42,11 +44,10 @@ var
   i, j: Integer;
   tmp: Int64;
 begin
-  // Fisher-Yates
-  Randomize;
+  // Fisher-Yates shuffle usando TtdCombinedPRNG
   for i := List.Count - 1 downto 1 do
   begin
-    j := Random(i + 1);
+    j := RndGenerate0(i); // genera un numero casuale tra 0 e i
     tmp := List[i];
     List[i] := List[j];
     List[j] := tmp;
@@ -87,7 +88,6 @@ begin
       // rotate (keep first element fixed)
       if n > 2 then
       begin
-        // spostiamo l'ultimo elemento in posizione 1
         b := temp[temp.Count - 1];
         temp.Delete(temp.Count - 1);
         temp.Insert(1, b);
@@ -173,17 +173,14 @@ var
   PoolList: TInt64List;
   GroupList: TInt64List;
   Rounds: TRounds;
-  Q: TFDQuery;
   i, r, division, baseRoundCount: Integer;
-  // local helper declarations
+
   procedure SelectTeamsByDivision(Division: Integer; CountNeeded: Integer; OutList: TInt64List);
   var
     qSel: TFDQuery;
-    tmpList: TInt64List;
   begin
     OutList := TInt64List.Create;
     qSel := TFDQuery.Create(nil);
-    tmpList := nil;
     try
       qSel.Connection := MainConn;
       qSel.SQL.Text := 'SELECT guid FROM teams WHERE country = :c AND avgdivision = :a';
@@ -199,10 +196,9 @@ var
       // shuffle and trim to needed count
       ShuffleList(OutList);
       while OutList.Count > CountNeeded do
-        OutList.Delete(OutList.Count - 1);
+        OutList.Delete(RndGenerate0(OutList.Count - 1));
     finally
       qSel.Free;
-      tmpList.Free; // tmpList unused but kept for safe pattern
     end;
   end;
 
@@ -225,7 +221,7 @@ var
       end;
       ShuffleList(Result);
       while Result.Count > 48 do
-        Result.Delete(Result.Count - 1);
+        Result.Delete(RndGenerate0(Result.Count - 1));
     finally
       qSel.Free;
     end;
@@ -246,27 +242,22 @@ begin
   GroupList := nil;
   Rounds := nil;
   try
-    // DIVISION 1 and 2 (avgdivision = 1 and 2)
+    // DIVISION 1 and 2
     for division := 1 to 2 do
     begin
       SelectTeamsByDivision(division, 20, TeamsList);
       try
-        // TeamsList now has up to 20 GUIDs, shuffled
-        // Generate round robin (expects even count)
         Rounds := GenerateRoundRobin(TeamsList);
         try
           baseRoundCount := TeamsList.Count - 1;
-          // andata
           for r := 0 to Rounds.Count - 1 do
             InsertRoundMatches(SaveConn, CountryGuid, division, r + 1, Rounds[r], False);
-          // ritorno
           for r := 0 to Rounds.Count - 1 do
             InsertRoundMatches(SaveConn, CountryGuid, division, baseRoundCount + 1 + r, Rounds[r], True);
         finally
           FreeRounds(Rounds);
           Rounds := nil;
         end;
-        // mark used
         MarkUsed(TeamsList);
       finally
         TeamsList.Free;
@@ -274,7 +265,7 @@ begin
       end;
     end;
 
-    // DIVISIONS 3,4,5 from avgdivision = 0 (3 groups of 16)
+    // DIVISIONS 3,4,5
     PoolList := SelectZeroPool;
     try
       for division := 3 to 5 do
@@ -287,10 +278,9 @@ begin
             PoolList.Delete(0);
           end;
 
-          // generate rounds for group (16 teams)
           Rounds := GenerateRoundRobin(GroupList);
           try
-            baseRoundCount := GroupList.Count - 1; // 15
+            baseRoundCount := GroupList.Count - 1;
             for r := 0 to Rounds.Count - 1 do
               InsertRoundMatches(SaveConn, CountryGuid, division, r + 1, Rounds[r], False);
             for r := 0 to Rounds.Count - 1 do
@@ -303,12 +293,10 @@ begin
           MarkUsed(GroupList);
         finally
           GroupList.Free;
-          GroupList := nil;
         end;
       end;
     finally
       PoolList.Free;
-      PoolList := nil;
     end;
 
   finally
@@ -326,16 +314,14 @@ var
 begin
   if (MainConn = nil) or (SaveDbConn = nil) then
     raise Exception.Create('GenerateCalendar: both connections must be provided');
+
   RandGen := TtdCombinedPRNG.Create(0, 0);
 
-
-  // Ensure calendar table exists in SaveDb and then clear it
   EnsureCalendarTable(SaveDbConn);
   SaveDbConn.StartTransaction;
   try
     SaveDbConn.ExecSQL('DELETE FROM calendar');
 
-    // iterate countries from main DB
     QCountries := TFDQuery.Create(nil);
     try
       QCountries.Connection := MainConn;
@@ -361,10 +347,11 @@ begin
       except
         // ignore rollback errors
       end;
-      raise; // re-raise error to caller
+      raise;
     end;
   end;
-  RandGen.free;
+
+  RandGen.Free;
 end;
 
 end.
