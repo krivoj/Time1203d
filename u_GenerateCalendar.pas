@@ -6,18 +6,34 @@ uses
   System.SysUtils, System.Classes,
   FireDAC.Comp.Client;
 
-procedure GenerateCalendar(MainConn, SaveDbConn: TFDConnection);
+procedure GenerateCalendar(MainConn, SaveDbConn: TFDConnection; SaveFile: string);
 
 implementation
 
 uses
-  System.Generics.Collections, System.Math, Data.DB, FireDAC.Comp.DataSet;
+  System.Generics.Collections, System.Math, Data.DB, FireDAC.Comp.DataSet, uRandom;
 
 type
   TInt64List = TList<Int64>;
   TPairInt64 = TPair<Int64, Int64>;
   TRound = TList<TPairInt64>;
   TRounds = TList<TRound>;
+  var
+  RandGen: TtdCombinedPRNG;
+
+  function RndGenerate( Upper: integer ): integer;
+  begin
+    Result := Trunc(RandGen.AsLimitedDouble (1, Upper + 1));
+  end;
+  function RndGenerate0( Upper: integer ): integer;
+  begin
+    Result := Trunc(RandGen.AsLimitedDouble (0, Upper + 1));
+  end;
+  function RndGenerateRange( Lower, Upper: integer ): integer;
+  begin
+    Result := Trunc(RandGen.AsLimitedDouble (Lower, Upper + 1));
+  end;
+
 
 // ----------------------------- helpers -------------------------------------
 
@@ -160,7 +176,7 @@ var
   Q: TFDQuery;
   i, r, division, baseRoundCount: Integer;
   // local helper declarations
-  procedure SelectTeamsByAvg(AvgDiv: Integer; CountNeeded: Integer; OutList: TInt64List);
+  procedure SelectTeamsByDivision(Division: Integer; CountNeeded: Integer; OutList: TInt64List);
   var
     qSel: TFDQuery;
     tmpList: TInt64List;
@@ -172,7 +188,7 @@ var
       qSel.Connection := MainConn;
       qSel.SQL.Text := 'SELECT guid FROM teams WHERE country = :c AND avgdivision = :a';
       qSel.Params.ParamByName('c').AsLargeInt := CountryGuid;
-      qSel.Params.ParamByName('a').AsInteger := AvgDiv;
+      qSel.Params.ParamByName('a').AsInteger := Division;
       qSel.Open;
       while not qSel.Eof do
       begin
@@ -233,7 +249,7 @@ begin
     // DIVISION 1 and 2 (avgdivision = 1 and 2)
     for division := 1 to 2 do
     begin
-      SelectTeamsByAvg(division, 20, TeamsList);
+      SelectTeamsByDivision(division, 20, TeamsList);
       try
         // TeamsList now has up to 20 GUIDs, shuffled
         // Generate round robin (expects even count)
@@ -303,13 +319,15 @@ end;
 // ---------------------------------------------------------------------------
 // Public procedure
 // ---------------------------------------------------------------------------
-procedure GenerateCalendar(MainConn, SaveDbConn: TFDConnection);
+procedure GenerateCalendar(MainConn, SaveDbConn: TFDConnection; SaveFile: string);
 var
   QCountries: TFDQuery;
   CountryGuid: Int64;
 begin
   if (MainConn = nil) or (SaveDbConn = nil) then
     raise Exception.Create('GenerateCalendar: both connections must be provided');
+  RandGen := TtdCombinedPRNG.Create(0, 0);
+
 
   // Ensure calendar table exists in SaveDb and then clear it
   EnsureCalendarTable(SaveDbConn);
@@ -346,6 +364,7 @@ begin
       raise; // re-raise error to caller
     end;
   end;
+  RandGen.free;
 end;
 
 end.

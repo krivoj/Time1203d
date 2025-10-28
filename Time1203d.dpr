@@ -7,7 +7,8 @@ uses
   uTileGrid in 'uTileGrid.pas',
   uFieldLines in 'uFieldLines.pas',
   u_sqlCreateSave in 'u_sqlCreateSave.pas',
-  u_GenerateCalendar in 'u_GenerateCalendar.pas';
+  u_GenerateCalendar in 'u_GenerateCalendar.pas',
+  uRandom in 'uRandom.pas';
 
 {$R *.res}
 
