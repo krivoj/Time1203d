@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Classes,
   FireDAC.Comp.Client,
   FireDAC.Stan.Def, FireDAC.Stan.Param, FireDAC.Stan.Async,
-  FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteDef;
+  FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteDef, FMX.dialogs;
 
 procedure SQLiteCreateSave(const DBFile: string);
 
@@ -93,7 +93,6 @@ const
 procedure SQLiteCreateSave(const DBFile: string);
 var
   Conn: TFDConnection;
-  DriverLink: TFDPhysSQLiteDriverLink;
   SQLScript: TStringList;
   SQLCommands: TArray<string>;
   i: Integer;
@@ -131,7 +130,7 @@ begin
           Conn.ExecSQL(Cmd);
         except
           on E: Exception do
-            Writeln('Errore eseguendo comando: ' + E.Message + sLineBreak + Cmd);
+            ShowMessage('Errore eseguendo comando: ' + E.Message + sLineBreak + Cmd);
         end;
       end;
     end;
@@ -139,7 +138,7 @@ begin
   finally
     SQLScript.Free;
     Conn.Free;
-    DriverLink.Free;
+    FDPhysSQLiteDriverLink1.Free;
   end;
 end;
 

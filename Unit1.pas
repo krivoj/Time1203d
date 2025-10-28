@@ -55,8 +55,12 @@ type
     FModel: TModel3D;
   public
     constructor Create(AOwner: TComponent; AViewport: TViewport3D;
-                       const ObjPath: string; const AColor: TAlphaColor;
+                       const ObjPath: string; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single);
+    constructor CreateFromClone(AOwner: TComponent; AViewport: TViewport3D;
+                                         BaseModel: TModel3D;
+                                         const ATexture: TTextureMaterialSource;
+                                         InitX, InitY: Single);
     procedure SetPosition(X, Y, Z: Single);
     procedure Free;
   end;
@@ -385,9 +389,9 @@ begin
   DBFile := GetLocalAppDataPath;
   ForceDirectories(DBFile + '\Time120\');
   DBFile := GetLocalAppDataPath + '\Time120\Save0.sqlite';
-  SQLiteCreateSave(DBFile);
+ // SQLiteCreateSave(DBFile);
 //  GenerateCalendar ( Conn1, Conn2, nomefile );
-  //InitGame;
+  InitGame;
 end;
 
 procedure TForm1.BtnLoadGameClick(Sender: TObject);
@@ -405,30 +409,48 @@ var
   i, row, col, Count: Integer;
   tile: TModelTile;
   Color: TAlphaColor;
+  FTexture0, FTexture1: TTextureMaterialSource;
+  BaseModel: TModel3D;
 begin
+// Carica il modello base UNA SOLA VOLTA
+  BaseModel := TModel3D.Create(Self);
+  BaseModel.LoadFromFile('player3.obj');
+  BaseModel.Visible := False; // non mostrarlo nella scena
+  BaseModel.Parent := Viewport3D1;
 
 // ROSSI
+// Crea materiale testurizzato
+  FTexture0 := TTextureMaterialSource.Create(Self);
+  FTexture0.Parent := Viewport3D1;
+  //FTexture.Texture.LoadFromFile('texture_diffuse.bmp'); // nel caso di ca_deer
+  //FTexture0.Texture.LoadFromFile('mix.bmp'); // nel caso di ca_deer
+  FTexture0.Texture.LoadFromFile('mix.bmp'); // nel caso di ca_deer
+
   for I := 0 to 10 do
-    Players[I] := TPlayerModel.Create(Self, Viewport3D1,
-                                      'untitled.obj', TAlphaColorRec.Red,
+    Players[I] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
+                                      BaseModel, FTexture0,
                                       Grid.FTiles[0, I].FPlane.Position.X,
                                       Grid.FTiles[0, I].FPlane.Position.Y);
 
   // BLU
+// Crea materiale testurizzato
+  FTexture1 := TTextureMaterialSource.Create(Self);
+  FTexture1.Parent := Viewport3D1;
+  FTexture1.Texture.LoadFromFile('MIX2.bmp'); // nel caso di ca_deer
   for I := 0 to 10 do
-    Players[I+11] := TPlayerModel.Create(Self, Viewport3D1,
-                                         'untitled.obj', TAlphaColorRec.Blue,
+    Players[I+11] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
+                                         BaseModel, FTexture1,
                                          Grid.FTiles[17, I].FPlane.Position.X,
                                          Grid.FTiles[17, I].FPlane.Position.Y);
 
+
 end;
 constructor TPlayerModel.Create(AOwner: TComponent; AViewport: TViewport3D;
-                                const ObjPath: string; const AColor: TAlphaColor;
+                                const ObjPath: string; const ATexture: TTextureMaterialSource;
                                 InitX, InitY: Single);
 var
   Mat: TColorMaterialSource;
   Mesh: TMesh;
-  FTexture : TTextureMaterialSource;
 begin
   // Crea il contenitore del modello
   FModel := TModel3D.Create(AOwner);
@@ -437,22 +459,10 @@ begin
   // Carica il file OBJ
   FModel.LoadFromFile(ObjPath);
 
-  // Crea un materiale colore
- { Mat := TColorMaterialSource.Create(AOwner);
-  Mat.Parent := FModel; //AViewport;
-  Mat.Color := AColor;
-
-  // Applica il materiale a tutte le mesh
   for Mesh in FModel.MeshCollection do
-    Mesh.MaterialSource := Mat;  }
+    Mesh.MaterialSource := ATexture;
 
-
-// Crea materiale testurizzato
-  FTexture := TTextureMaterialSource.Create(AOwner);
-  FTexture.Parent := AViewport;
-  FTexture.Texture.LoadFromFile('texture_diffuse.bmp');
-  for Mesh in FModel.MeshCollection do
-    Mesh.MaterialSource := FTexture;
+  FModel.RotationAngle.X := 180;
 
   // Scala il modello (puoi regolare)
   FModel.Scale.X := 1;
@@ -460,7 +470,31 @@ begin
   FModel.Scale.Z := 1;
 
   // Posiziona inizialmente sopra la tile
-  SetPosition(InitX, InitY, 0.5);
+  SetPosition(InitX, InitY, 0);
+end;
+constructor TPlayerModel.CreateFromClone(AOwner: TComponent; AViewport: TViewport3D;
+                                         BaseModel: TModel3D;
+                                         const ATexture: TTextureMaterialSource;
+                                         InitX, InitY: Single);
+var
+  Mesh: TMesh;
+begin
+  // Duplica il modello già caricato
+  FModel := TModel3D(BaseModel.Clone(AOwner));
+  FModel.Parent := AViewport;
+  FModel.Visible := True;
+
+  // Applica la texture a tutte le mesh
+  for Mesh in FModel.MeshCollection do
+    Mesh.MaterialSource := ATexture;
+
+  // Impostazioni di base
+  FModel.RotationAngle.X := 180;
+  FModel.Scale.X := 1;
+  FModel.Scale.Y := 1;
+  FModel.Scale.Z := 1;
+
+  SetPosition(InitX, InitY, 0.42);
 end;
 
 
