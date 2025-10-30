@@ -486,12 +486,14 @@ begin
   // 🔹 Etichetta 3D con il cognome
   FLabel3D := TText3D.Create(FModel);
   FLabel3D.Parent := FModel;  // figlia del modello → si muove con lui
-  FLabel3D.Text := FSurname;
-  FLabel3D.Depth := 0.2;
-  FLabel3D.Scale.Point := Point3D(1, 1, 1);
+  FLabel3D.Depth := 0.3;
+  FLabel3D.Width := 3;
+  FLabel3D.Height := 2;
+  FLabel3D.Font.Size :=1;
+  FLabel3D.Scale.Point := Point3D(0.27, 0.27, 0.27);
   FLabel3D.Position.Point := Point3D(0, 0, 0.42 );
   FLabel3D.MaterialSource := TColorMaterialSource.Create(AOwner);
-  (FLabel3D.MaterialSource as TColorMaterialSource).Color := TAlphaColorRec.White;
+  (FLabel3D.MaterialSource as TColorMaterialSource).Color := TAlphaColorRec.Silver;
 
 end;
 procedure TPlayerModel.SetSurname(const Value: string);
