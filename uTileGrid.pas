@@ -15,7 +15,7 @@ type
     FMaterial: TTextureMaterialSource;
   public
     FPlane: TPlane;
-    CellX, CellY: Integer;
+    GridIndex, CellX, CellY: Integer;
     constructor Create(AOwner: TComponent; AParent: TControl3D;
       const TextureFile: string; SharedMaterial: TTextureMaterialSource;
       X, Y, SizeX, SizeY, Depth: Single);
@@ -42,13 +42,13 @@ type
     FCols: Integer;
     FRows: Integer;
     FTiles: array of array of TModelTile;
-
+    FGridIndex: Integer;
     // Costruttori overload
-    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Cols, Rows: Integer;
+    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
       const DefaultTextureFile: string); overload; // tutte le celle uguali
-    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Cols, Rows: Integer;
+    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
       const TextureFiles: TStringArray2D); overload; // celle individuali
-    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Cols, Rows: Integer; FieldBitmap: TBitmap); overload;
+    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer; FieldBitmap: TBitmap); overload;
 
     procedure DrawGrid;
     procedure Free;
@@ -127,7 +127,7 @@ end;
 
 { ===== TTileGrid ===== }
 
-constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Cols, Rows: Integer;
+constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
   const DefaultTextureFile: string);
 begin
   inherited Create;
@@ -135,6 +135,7 @@ begin
   FTileSizeX := 1.0;
   FTileSizeY := 1.0;
   FTileDepth := 0.08;
+  FGridIndex:= Index;
 
   FDummyRoot := TDummy.Create(FViewport);
   FDummyRoot.Parent := FViewport;
@@ -151,7 +152,7 @@ begin
   InitializeGrid(AOwner, Cols, Rows, nil, FDefaultMaterial);
 end;
 
-constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Cols, Rows: Integer;
+constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
   const TextureFiles: TStringArray2D);
 begin
   inherited Create;
@@ -159,6 +160,7 @@ begin
   FTileSizeX := 1.0;
   FTileSizeY := 1.0;
   FTileDepth := 0.08;
+  FGridIndex:= Index;
 
   FDummyRoot := TDummy.Create(FViewport);
   FDummyRoot.Parent := FViewport;
@@ -171,13 +173,14 @@ begin
   InitializeGrid(AOwner, Cols, Rows, TextureFiles, nil);
 end;
 
-constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Cols, Rows: Integer; FieldBitmap: TBitmap);
+constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer; FieldBitmap: TBitmap);
 begin
   inherited Create;
   FViewport := AViewport;
   FTileSizeX := 1.0;
   FTileSizeY := 1.0;
   FTileDepth := 0.08;
+  FGridIndex:= Index;
 
   FDummyRoot := TDummy.Create(FViewport);
   FDummyRoot.Parent := FViewport;
@@ -224,6 +227,8 @@ begin
       FTiles[X, Y].FPlane.OnMouseDown := LocalMouseDown;
       FTiles[X, Y].FPlane.OnMouseUp := LocalMouseUp;
       FTiles[X, Y].FPlane.HitTest := True;
+      FTiles[X, Y].GridIndex := FGridIndex; // per sicurezza a tutti e 2
+      FTiles[X, Y].FPlane.Tag := FGridIndex;
       FTiles[X, Y].CellX := X;
       FTiles[X, Y].CellY := Y;
       FTiles[X, Y].FPlane.TagString := IntToStr(X) + '/' + IntToStr(Y);

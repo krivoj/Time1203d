@@ -13,15 +13,18 @@ uses
   FMX.Types;
 
 Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
+Type TGridCell = record
+  GridIndex, CellX, CellY : Integer;
+end;
 type
   TPlayerModel = class
   private
     FModel: TModel3D;
     FCellX: Integer;
     FCellY: Integer;
-    procedure SetCells ( Cells: TPoint );
-    function GetCells : TPoint;
+    function GetGridCells : TGridCell;
   public
+    FGridIndex: Integer;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D;
                        const ObjPath: string; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single);
@@ -30,10 +33,12 @@ type
                                          const ATexture: TTextureMaterialSource;
                                          InitX, InitY: Single);
     procedure SetPosition(X, Y, Z: Single);
+    procedure SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
     procedure Free;
     property CellX: integer read FCellX write FCellX;
     property CellY: integer read FCellY write FCellY;
-    property Cells: TPoint read GetCells write SetCells;
+    property Cells: TGridCell read GetGridCells;
+    property GridIndex: Integer read FGridIndex write FGridIndex;
   end;
 
 type
@@ -66,7 +71,7 @@ type
     procedure SetupCameraTopView;
     procedure TileMouseDown(Sender:Tobject; Button: TMouseButton; CellX,CellY: integer);
     procedure TileMouseUp(Sender:Tobject; Button: TMouseButton; CellX,CellY: integer);
-    function GetPlayerFromBoard ( CellX, CellY: integer): TPlayerModel;
+    function GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayerModel;
 
     procedure CreatePlayers;
     procedure CreateGround;
@@ -86,7 +91,7 @@ var
   tile: TModelTile;
   Mat: TTextureMaterialSource ;
   Ground: TPlane;
-  G: array [0..2] of TTileGrid;
+  Grid: array [0..2] of TTileGrid;
   MouseStatus : TMouseStatus;
 implementation
 
@@ -102,9 +107,9 @@ begin
   Viewport3D1.Visible := False;
   // Inizializza menu overlay
   InitMenu;
-  G[0]:= Board;
-  G[1]:= Reserve0;
-  G[1]:= Reserve1;
+  Grid[0]:= Reserve0;
+  Grid[1]:= Reserve1;
+  Grid[2]:= Board;
 
 
 end;
@@ -185,9 +190,8 @@ procedure TForm1.TileMouseDown(Sender: TObject; Button: TMouseButton; CellX,Cell
 var
   aPlayer: TPlayerModel;
 begin
-  //SelectedPlayer := Grid.FTiles[CellX, CellY]; // memorizzo la tile
   if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
-    SelectedPlayer := GetPlayerFromBoard (CellX, CellY);
+    SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
     if SelectedPlayer = nil then exit;
 
     StartTilePos := Point ( CellX, CellY );
@@ -196,19 +200,17 @@ begin
   end
   else if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_Waiting_For_Destination_Cell) then begin
     if SelectedPlayer <> nil then begin
-      // CellX e CellY  la cella su cui abbiamo rilasciato. Cerca un TPlayerModel sopra
+      // FIndex indica suq quale grid abbiamo cliccato. CellX e CellY  la cella su cui abbiamo cliccato. Cerca un TPlayerModel sopra
       // se lo trova lo mette al posto di selectedPlayer
-      aPlayer := GetPlayerFromBoard ( CellX, CellY );
-      if aPlayer <> nil then begin
-        aPlayer.Cells := SelectedPlayer.Cells;
-        aPlayer.SetPosition( aPlayer.FModel.Position.X, aPlayer.FModel.Position.Y, aPlayer.FModel.Position.Z );
+      aPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY );
+      if aPlayer <> nil then begin // se c'è un player lo metto al posto di SelectedPlayer
+        aPlayer.SetGridPosition( SelectedPlayer.GridIndex , SelectedPlayer.CellX, SelectedPlayer.CellY );
+        aPlayer.SetPosition( SelectedPlayer.FModel.Position.X, SelectedPlayer.FModel.Position.Y, SelectedPlayer.FModel.Position.Z );
       end;
 
-        // Allinea la posizione di SelectedPlayer alla cella di destinazione
-      SelectedPlayer.Cells := Point( CellX, CellY);
+        // Allinea la posizione di SelectedPlayer alla grid e alla cella di destinazione
+      SelectedPlayer.SetGridPosition( TPlane(Sender).Tag,CellX, CellY );
       SelectedPlayer.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.X, SelectedPlayer.FModel.Position.Z);
-
-
       SelectedPlayer := nil;
 
     end;
@@ -302,8 +304,7 @@ begin
     10, 10, 10, 10);
 
   // 2️⃣ Creo la griglia direttamente passando la bitmap
-  Board := TTileGrid.Create(Self, Viewport3D1, 18, 11, FieldBitmap);
-
+  Board := TTileGrid.Create(Self, Viewport3D1, 2, 18, 11, FieldBitmap);
   // 3️⃣ Posiziono la griglia (opzionale)
   Board.SetBasePosition(-9, -5.5);
 
@@ -314,8 +315,9 @@ begin
   Board.SetBasePosition(-9, -5.5); // esempio per centrare 18x11 celle di 1 unit
 
   //Grid := TTileGrid.Create(Self, Viewport3D1,  18,11,  'terrain.bmp');
-  Reserve0:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'terrain.bmp');
-  Reserve1:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'terrain.bmp');
+  Reserve0:= TTileGrid.Create(Self, Viewport3D1, 0, 1,11, 'terrain.bmp');
+  Reserve1:= TTileGrid.Create(Self, Viewport3D1, 1, 1,11, 'terrain.bmp');
+
   Board.SetBasePosition(0,0);
   Board.SetRotationZ(0);         // verticale
   CreateGround;
@@ -390,6 +392,7 @@ begin
                                       BaseModel, FTexture0,
                                       Board.FTiles[0, I].FPlane.Position.X,
                                       Board.FTiles[0, I].FPlane.Position.Y );
+    Players[I].GridIndex := Grid[2].FGridIndex;
     Players[I].CellX := 0;
     Players[I].CellY := I;
   end;
@@ -406,6 +409,7 @@ begin
                                          Board.FTiles[17, I].FPlane.Position.X,
                                          Board.FTiles[17, I].FPlane.Position.Y);
 
+    Players[I].GridIndex := Grid[2].FGridIndex;
     Players[I].CellX := 17;
     Players[I].CellY := I;
   end;
@@ -474,19 +478,21 @@ begin
   if FModel <> nil then
     FModel.free;
 end;
-
+procedure TPlayerModel.SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
+begin
+  FGridIndex := GridIndex;
+  FCellX := CellX;
+  FCellY := CellY;
+end;
 procedure TPlayerModel.SetPosition(X, Y, Z: Single);
 begin
   FModel.Position.Point := Point3D(X, Y, Z);
 end;
-procedure TPlayerModel.SetCells ( Cells: TPoint );
+function TPlayerModel.GetGridCells: TGridCell;
 begin
-  FCellX := CellX;
-  FCellY := CellY;
-end;
-function TPlayerModel.GetCells: TPoint;
-begin
-  Result := Point( FCellX, FCellY );
+  Result.GridIndex := FGridIndex;
+  Result.CellX := FCellX;
+  Result.CellY := FCellY;
 end;
 
 procedure TForm1.CreateGround;
@@ -605,13 +611,13 @@ begin
   // sposta di 1 cella indietro
 end;
 
-function TForm1.GetPlayerFromBoard ( CellX, CellY: integer): TPlayerModel;
+function TForm1.GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayerModel;
 var
   i: integer;
 begin
   Result := nil;
   for i := 0 to High(Players) do begin
-    if (Players[i].CellX = CellX) and (Players[i].CellY = CellY)  then begin
+    if ( Players[i].GridIndex = GridIndex ) and (Players[i].CellX = CellX) and (Players[i].CellY = CellY) then begin
       Result := Players[i];
       Exit;
     end;
