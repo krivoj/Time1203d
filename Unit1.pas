@@ -22,7 +22,10 @@ type
     FModel: TModel3D;
     FCellX: Integer;
     FCellY: Integer;
+    FLabel3D: TText3D;
+    FFSurname: string;
     function GetGridCells : TGridCell;
+    procedure SetSurname(const Value: string);
   public
     FGridIndex: Integer;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D;
@@ -32,6 +35,7 @@ type
                                          BaseModel: TModel3D;
                                          const ATexture: TTextureMaterialSource;
                                          InitX, InitY: Single);
+    destructor Destroy; override;
     procedure SetPosition(X, Y, Z: Single);
     procedure SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
     procedure Free;
@@ -39,6 +43,7 @@ type
     property CellY: integer read FCellY write FCellY;
     property Cells: TGridCell read GetGridCells;
     property GridIndex: Integer read FGridIndex write FGridIndex;
+    property FSurname: string read FFSurname write SetSurname;
   end;
 
 type
@@ -395,6 +400,7 @@ begin
     Players[I].GridIndex := Grid[2].FGridIndex;
     Players[I].CellX := 0;
     Players[I].CellY := I;
+    Players[i].FSurname := IntTostr(i);
   end;
 
   // BLU
@@ -412,6 +418,7 @@ begin
     Players[I].GridIndex := Grid[2].FGridIndex;
     Players[I].CellX := 17;
     Players[I].CellY := I;
+    Players[i+11].FSurname := 'Marchesini';
   end;
 
 
@@ -419,6 +426,11 @@ begin
   Players[3].SetPosition(Board.FTiles[15, 4].FPlane.Position.Point.X, Board.FTiles[15, 4].FPlane.Position.Point.Y, 0.42);
 
 
+end;
+destructor TPlayerModel.Destroy;
+begin
+  FModel.Free;  // liberando il modello, anche la label 3D viene liberata
+  inherited;
 end;
 constructor TPlayerModel.Create(AOwner: TComponent; AViewport: TViewport3D;
                                 const ObjPath: string; const ATexture: TTextureMaterialSource;
@@ -470,8 +482,24 @@ begin
   FModel.Scale.Z := 1;
 
   SetPosition(InitX, InitY, 0.42);
-end;
 
+  // 🔹 Etichetta 3D con il cognome
+  FLabel3D := TText3D.Create(FModel);
+  FLabel3D.Parent := FModel;  // figlia del modello → si muove con lui
+  FLabel3D.Text := FSurname;
+  FLabel3D.Depth := 0.2;
+  FLabel3D.Scale.Point := Point3D(1, 1, 1);
+  FLabel3D.Position.Point := Point3D(0, 0, 0.42 );
+  FLabel3D.MaterialSource := TColorMaterialSource.Create(AOwner);
+  (FLabel3D.MaterialSource as TColorMaterialSource).Color := TAlphaColorRec.White;
+
+end;
+procedure TPlayerModel.SetSurname(const Value: string);
+begin
+  FFSurname := Value;
+  //if Assigned(FLabel3D) then
+    FLabel3D.Text := Value;
+end;
 
 procedure TPlayerModel.Free;
 begin
