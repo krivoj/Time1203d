@@ -669,4 +669,21 @@ begin
   HighlightPlanes.Clear;
 end;
 
+procedure TForm1.FormCreate(Sender: TObject);
+begin
 
+PlayerStatsPanel := TPlayerStatsPanel.Create(Self, DirBmp);
+PlayerStatsPanel.Parent := LayoutMain;  // o dove lo vuoi mettere
+PlayerStatsPanel.Visible := False;
+end;
+
+procedure TForm1.ShowPlayerStats(Player: TPlayer);
+begin
+  PlayerStats.BuildFromPlayer(Player);
+  PlayerStats.Visible := True;
+end;
+
+procedure TForm1.HidePlayerStats;
+begin
+  PlayerStats.Visible := False;
+end;}

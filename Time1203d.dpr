@@ -19,7 +19,8 @@ uses
   u_sqlCreateSave in 'u_sqlCreateSave.pas',
   u_GenerateCalendar in 'u_GenerateCalendar.pas',
   uRandom in 'uRandom.pas',
-  u_SystemUtils in 'u_SystemUtils.pas';
+  u_SystemUtils in 'u_SystemUtils.pas',
+  u_PlayerStatsPanel in 'u_PlayerStatsPanel.pas';
 
 {$R *.res}
 
