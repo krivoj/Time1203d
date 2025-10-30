@@ -3,14 +3,38 @@
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,uTileGrid,uFieldLines,
-  FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D,FMX.Types3D,
+  System.SysUtils, System.Classes, System.UITypes, System.Types, System.Variants,
+  FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,uTileGrid,uFieldLines,
+  FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D,
   FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer, u_SqlcreateSave, math,
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
-  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
-  FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,u_SystemUtils,System.IOUtils;
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FMX.Types3D,FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,u_SystemUtils,System.IOUtils,
+  FMX.Types;
+
+Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
+type
+  TPlayerModel = class
+  private
+    FModel: TModel3D;
+    FCellX: Integer;
+    FCellY: Integer;
+    procedure SetCells ( Cells: TPoint );
+    function GetCells : TPoint;
+  public
+    constructor Create(AOwner: TComponent; AViewport: TViewport3D;
+                       const ObjPath: string; const ATexture: TTextureMaterialSource;
+                       InitX, InitY: Single);
+    constructor CreateFromClone(AOwner: TComponent; AViewport: TViewport3D;
+                                         BaseModel: TModel3D;
+                                         const ATexture: TTextureMaterialSource;
+                                         InitX, InitY: Single);
+    procedure SetPosition(X, Y, Z: Single);
+    procedure Free;
+    property CellX: integer read FCellX write FCellX;
+    property CellY: integer read FCellY write FCellY;
+    property Cells: TPoint read GetCells write SetCells;
+  end;
 
 type
   TForm1 = class(TForm)
@@ -21,8 +45,8 @@ type
     procedure Viewport3D1MouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
     procedure FormResize(Sender: TObject);
-    procedure Viewport3D1MouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Single);
+    procedure Viewport3D1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Single);
   private
     { Private declarations }
     MenuLayout: TLayout;
@@ -40,50 +64,30 @@ type
     procedure BtnExitClick(Sender: TObject);  public
     { Public declarations }
     procedure SetupCameraTopView;
-    procedure SetupFieldLights;
-    procedure TileMouseDown(Sender:Tobject ; CellX,CellY: integer);
-    procedure TileMouseUp(Sender:Tobject ; CellX,CellY: integer);
-    function GetPlayerModelFromBoard ( CellX, CellY: integer): TModel3D;
+    procedure TileMouseDown(Sender:Tobject; Button: TMouseButton; CellX,CellY: integer);
+    procedure TileMouseUp(Sender:Tobject; Button: TMouseButton; CellX,CellY: integer);
+    function GetPlayerFromBoard ( CellX, CellY: integer): TPlayerModel;
 
     procedure CreatePlayers;
     procedure CreateGround;
   public
     procedure InitCameraMoveControls;
     end;
-type
-  TPlayerModel = class
-  private
-    FModel: TModel3D;
-    FCellX: Integer;
-    FCellY: Integer;
-  public
-    constructor Create(AOwner: TComponent; AViewport: TViewport3D;
-                       const ObjPath: string; const ATexture: TTextureMaterialSource;
-                       InitX, InitY: Single);
-    constructor CreateFromClone(AOwner: TComponent; AViewport: TViewport3D;
-                                         BaseModel: TModel3D;
-                                         const ATexture: TTextureMaterialSource;
-                                         InitX, InitY: Single);
-    procedure SetPosition(X, Y, Z: Single);
-    procedure Free;
-    property CellX: integer read FCellX write FCellX;
-    property CellY: integer read FCellY write FCellY;
-  end;
 
 var
 
   Form1: TForm1;
   BtnExit,BtnNewGame,BtnLoadGame: TButton;
-  Grid: TTileGrid;
-  Reserve : Array[0..1] of TTileGrid;
-  DraggingPlayer: TModel3D;
-  StartMouse: TPointF;
-  StartTilePos: TPoint3D;
+  Board, Reserve0, Reserve1: TTileGrid;
+  SelectedPlayer: TPlayerModel;
+  StartTilePos: TPoint;
+  StartPoint3DPos: TPoint3D;
   Players: array[0..21] of TPlayerModel;
-  i, row, col: Integer;
   tile: TModelTile;
   Mat: TTextureMaterialSource ;
   Ground: TPlane;
+  G: array [0..2] of TTileGrid;
+  MouseStatus : TMouseStatus;
 implementation
 
 {$R *.fmx}
@@ -98,22 +102,24 @@ begin
   Viewport3D1.Visible := False;
   // Inizializza menu overlay
   InitMenu;
+  G[0]:= Board;
+  G[1]:= Reserve0;
+  G[1]:= Reserve1;
+
 
 end;
 
-procedure TForm1.Viewport3D1MouseMove(Sender: TObject; Shift: TShiftState; X,
-  Y: Single);
-var
-  Delta: TPointF;
+procedure TForm1.Viewport3D1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Single);
 begin
-  if (DraggingPlayer <> nil ) and ( ssLeft in Shift) then
-  begin
-    Delta := Screen.MousePos - StartMouse;
-
-    // movimento semplice in X-Y (piano vista dall'alto)
-    DraggingPlayer.Position.X := StartTilePos.X + Delta.X * 0.02;
-    DraggingPlayer.Position.Y := StartTilePos.Y + Delta.Y * 0.02;
+  // se non hai rilasciato sopra nessuna cella, torna alla posizione iniziale
+  if (Button = TMouseButton.mbLeft) and ( MouseStatus = Ms_Waiting_For_Destination_Cell) then begin
+//SelectedPlayer.SetPosition ( StartPoint3DPos.X, StartPoint3DPos.Y, StartPoint3DPos.Z  );
+    SelectedPlayer:= nil;
+    MouseStatus := Ms_None;
   end;
+
+
 end;
 
 procedure TForm1.Viewport3D1MouseWheel(Sender: TObject; Shift: TShiftState;
@@ -134,8 +140,8 @@ begin
   if not viewport3d1.Visible then exit;
 
   // dimensioni della griglia
-  GridWidth := Grid.FCols * Grid.FTileSizeX;
-  GridHeight := Grid.FRows * Grid.FTileSizeY;
+  GridWidth := Board.FCols * Board.FTileSizeX;
+  GridHeight := Board.FRows * Board.FTileSizeY;
 
   // rapporto viewport
   AspectRatio := Viewport3D1.Width / Viewport3D1.Height;
@@ -148,88 +154,6 @@ begin
 
   Camera1.Position.Z := MaxDim;  // alza o abbassa la camera per adattare tutta la griglia
 end;
-procedure TForm1.SetupFieldLights;
-var
-  SunLight: TLight;
-  i, X, Y, XMax, YMax: Integer;
-  Positions: array[0..3] of TPoint3D;
-  SpotPlane: TPlane;
-  LightMat, TileMat: TLightMaterialSource;
-  Tile: TModelTile;
-  Obj: TFmxObject;
-  Mesh: TMesh;
-  Plane: TPlane;
-  OffsetY: Single;
-begin
-  XMax := Grid.FCols - 1;
-  YMax := Grid.FRows - 1;
-  OffsetY := Grid.FTileDepth / 2 + 0.5; // rialzo leggero per i fari
-
-  // ==== MATERIALI CELLE ====
-  TileMat := TLightMaterialSource.Create(Self);
-  TileMat.Parent := Self;
-  TileMat.Diffuse := TAlphaColorRec.Green;
-  TileMat.Specular := TAlphaColorRec.White;
-  TileMat.Shininess := 150;
-
-  for Y := 0 to YMax do
-    for X := 0 to XMax do
-    begin
-      Tile := Grid.FTiles[X, Y];
-      Tile.FPlane.MaterialSource := TileMat;
-    end;
-
-  // ==== ASSEGNA IL MATERIALE A TUTTI I MESH E PIANI DELLA VIEWPORT ====
-  for i := 0 to Viewport3D1.ChildrenCount - 1 do
-  begin
-    Obj := Viewport3D1.Children[i];
-    if Obj is TMesh then
-    begin
-      Mesh := TMesh(Obj);
-      Mesh.MaterialSource := TileMat;
-    end
-    else if Obj is TPlane then
-    begin
-      Plane := TPlane(Obj);
-      Plane.MaterialSource := TileMat;
-    end;
-  end;
-
-  // ==== LUCE SOLARE DIREZIONALE ====
-  SunLight := TLight.Create(Viewport3D1);
-  SunLight.Parent := Viewport3D1;
-  SunLight.LightType := TLightType.Directional;
-  SunLight.Position.Point := Camera1.Position.Point;
-  SunLight.RotationAngle := Camera1.RotationAngle;
-  SunLight.RotationCenter.Point := Point3D(0,0,0);
-  SunLight.Color := TAlphaColorF.Create(1.0,0.98,0.9,1).ToAlphaColor;
-  SunLight.Name := 'SunLight';
-
-  // ==== POSIZIONI FARI (angoli griglia) ====
-  Positions[0] := Point3D(Grid.FTiles[0,0].FPlane.Position.X, OffsetY, Grid.FTiles[0,0].FPlane.Position.Y);
-  Positions[1] := Point3D(Grid.FTiles[XMax,0].FPlane.Position.X, OffsetY, Grid.FTiles[XMax,0].FPlane.Position.Y);
-  Positions[2] := Point3D(Grid.FTiles[0,YMax].FPlane.Position.X, OffsetY, Grid.FTiles[0,YMax].FPlane.Position.Y);
-  Positions[3] := Point3D(Grid.FTiles[XMax,YMax].FPlane.Position.X, OffsetY, Grid.FTiles[XMax,YMax].FPlane.Position.Y);
-
-  // ==== CREAZIONE PIANI SEMITRASPARENTI PER FARI ====
-  for i := 0 to 3 do
-  begin
-    SpotPlane := TPlane.Create(Viewport3D1);
-    SpotPlane.Parent := Viewport3D1;
-    SpotPlane.Width := 20;
-    SpotPlane.Height := 20;
-    SpotPlane.Position.Point := Positions[i];
-    SpotPlane.RotationAngle.X := -90;
-
-    LightMat := TLightMaterialSource.Create(Self);
-    LightMat.Parent := Self;
-    LightMat.Diffuse := TAlphaColorF.Create(1,1,0.8,0.3).ToAlphaColor;
-    LightMat.Specular := TAlphaColorRec.White;
-    LightMat.Shininess := 150;
-
-    SpotPlane.MaterialSource := LightMat;
-  end;
-end;
 
 procedure TForm1.SetupCameraTopView;
 var
@@ -239,8 +163,8 @@ begin
   Camera1.Parent := Viewport3D1;
 
 // Celle centrali
-  TileLeft  := Grid.FTiles[8, 5];
-  TileRight := Grid.FTiles[9, 5];
+  TileLeft  := Board.FTiles[8, 5];
+  TileRight := Board.FTiles[9, 5];
 
   // Calcolo posizione centrale tra le due celle
   //CenterY := (TileLeft.FPlane.Position.Y + TileRight.FPlane.Position.Y) / 2;
@@ -257,35 +181,44 @@ begin
   Camera1.RotationAngle.X := -170;  // Vista dall'alto  180 per centrare dall'alto
  // Camera1.RotationAngle.Z := -90;  // Campo ruotato orizzontalmenteend;
 end;
-procedure TForm1.TileMouseDown(Sender: TObject; CellX,CellY: integer);
-begin
-  //DraggingPLayer := Grid.FTiles[CellX, CellY]; // memorizzo la tile
-  DraggingPLayer := GetPlayerModelFromBoard (CellX, CellY);
-  StartMouse := Screen.MousePos;        // posizione iniziale mouse
-  StartTilePos := DraggingPLayer.Position.Point; // posizione iniziale tile
-//  ShowMessage(Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]));
-end;
-procedure TForm1.TileMouseUp(Sender: TObject; CellX,CellY: integer);
+procedure TForm1.TileMouseDown(Sender: TObject; Button: TMouseButton; CellX,CellY: integer);
 var
-  TargetTile: TModelTile;
+  aPlayer: TPlayerModel;
+begin
+  //SelectedPlayer := Grid.FTiles[CellX, CellY]; // memorizzo la tile
+  if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
+    SelectedPlayer := GetPlayerFromBoard (CellX, CellY);
+    if SelectedPlayer = nil then exit;
+
+    StartTilePos := Point ( CellX, CellY );
+    StartPoint3DPos :=  SelectedPlayer.FModel.Position.Point;
+    MouseStatus := Ms_Waiting_For_Destination_Cell;
+  end
+  else if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_Waiting_For_Destination_Cell) then begin
+    if SelectedPlayer <> nil then begin
+      // CellX e CellY  la cella su cui abbiamo rilasciato. Cerca un TPlayerModel sopra
+      // se lo trova lo mette al posto di selectedPlayer
+      aPlayer := GetPlayerFromBoard ( CellX, CellY );
+      if aPlayer <> nil then begin
+        aPlayer.Cells := SelectedPlayer.Cells;
+        aPlayer.SetPosition( aPlayer.FModel.Position.X, aPlayer.FModel.Position.Y, aPlayer.FModel.Position.Z );
+      end;
+
+        // Allinea la posizione di SelectedPlayer alla cella di destinazione
+      SelectedPlayer.Cells := Point( CellX, CellY);
+      SelectedPlayer.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.X, SelectedPlayer.FModel.Position.Z);
+
+
+      SelectedPlayer := nil;
+
+    end;
+  end;
+  //  ShowMessage(Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]));
+end;
+procedure TForm1.TileMouseUp(Sender: TObject; Button: TMouseButton; CellX,CellY: integer);
 begin
 
-  //ShowMessage(Format('Hai cliccato UP la cella Col=%d Row=%d', [CellX, CellY]));
 
-  if DraggingPLayer <> nil then
-  begin
-    // Trova la cella su cui abbiamo rilasciato
-
-      // Allinea la posizione alla cella di destinazione
-      DraggingPLayer.Position.X := TPlane(Sender).Position.X;
-      DraggingPLayer.Position.Y := TPlane(Sender).Position.Y;
-      // se non hai rilasciato sopra nessuna cella, torna alla posizione iniziale
-//      DraggingTile.FPlane.Position.Point := StartTilePos;
-
-    // riporta a Z = 0
-    DraggingPLayer.Position.Z := 0.42;
-    DraggingPLayer := nil;
-  end;
 
 end;
 
@@ -369,35 +302,35 @@ begin
     10, 10, 10, 10);
 
   // 2️⃣ Creo la griglia direttamente passando la bitmap
-  Grid := TTileGrid.Create(Self, Viewport3D1, 18, 11, FieldBitmap);
+  Board := TTileGrid.Create(Self, Viewport3D1, 18, 11, FieldBitmap);
 
   // 3️⃣ Posiziono la griglia (opzionale)
-  Grid.SetBasePosition(-9, -5.5);
+  Board.SetBasePosition(-9, -5.5);
 
   // 4️⃣ Libero bitmap manualmente (materiale già l’ha copiata)
   FieldBitmap.Free;
   InitCameraMoveControls;
 
-  Grid.SetBasePosition(-9, -5.5); // esempio per centrare 18x11 celle di 1 unit
-  
+  Board.SetBasePosition(-9, -5.5); // esempio per centrare 18x11 celle di 1 unit
+
   //Grid := TTileGrid.Create(Self, Viewport3D1,  18,11,  'terrain.bmp');
-  Reserve[0]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'terrain.bmp');
-  Reserve[1]:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'terrain.bmp');
-  Grid.SetBasePosition(0,0);
-  Grid.SetRotationZ(0);         // verticale
+  Reserve0:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'terrain.bmp');
+  Reserve1:= TTileGrid.Create(Self, Viewport3D1, 1,11, 'terrain.bmp');
+  Board.SetBasePosition(0,0);
+  Board.SetRotationZ(0);         // verticale
   CreateGround;
 
-  FieldDrawer := TFieldDrawer.Create(Self, Viewport3D1, Grid);
+  FieldDrawer := TFieldDrawer.Create(Self, Viewport3D1, Board);
   FieldDrawer.DrawField;
 
   // Griglia di riserva sinistra (11x1)
 
-  Reserve[0].SetBasePosition(-1, 0);  // centrata in verticale
-  Reserve[0].SetRotationZ(0);         // verticale
+  Reserve0.SetBasePosition(-1, 0);  // centrata in verticale
+  Reserve0.SetRotationZ(0);         // verticale
 
   // Griglia di riserva destra (11x1)
-  Reserve[1].SetBasePosition(18, 0);
-  Reserve[1].SetRotationZ(0);        // verticale speculare
+  Reserve1.SetBasePosition(18, 0);
+  Reserve1.SetRotationZ(0);        // verticale speculare
   CreatePlayers;
 
   // Camera
@@ -455,8 +388,8 @@ begin
   for I := 0 to 10 do begin
     Players[I] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
                                       BaseModel, FTexture0,
-                                      Grid.FTiles[0, I].FPlane.Position.X,
-                                      Grid.FTiles[0, I].FPlane.Position.Y );
+                                      Board.FTiles[0, I].FPlane.Position.X,
+                                      Board.FTiles[0, I].FPlane.Position.Y );
     Players[I].CellX := 0;
     Players[I].CellY := I;
   end;
@@ -470,15 +403,16 @@ begin
   for I := 0 to 10 do begin
     Players[I+11] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
                                          BaseModel, FTexture1,
-                                         Grid.FTiles[17, I].FPlane.Position.X,
-                                         Grid.FTiles[17, I].FPlane.Position.Y);
+                                         Board.FTiles[17, I].FPlane.Position.X,
+                                         Board.FTiles[17, I].FPlane.Position.Y);
 
-    Players[I].CellX := 0;
+    Players[I].CellX := 17;
     Players[I].CellY := I;
   end;
 
 
-  Players[3].SetPosition(Grid.FTiles[15, 4].FPlane.Position.Point.X, Grid.FTiles[15, 4].FPlane.Position.Point.Y, 0.42);
+
+  Players[3].SetPosition(Board.FTiles[15, 4].FPlane.Position.Point.X, Board.FTiles[15, 4].FPlane.Position.Point.Y, 0.42);
 
 
 end;
@@ -545,14 +479,24 @@ procedure TPlayerModel.SetPosition(X, Y, Z: Single);
 begin
   FModel.Position.Point := Point3D(X, Y, Z);
 end;
+procedure TPlayerModel.SetCells ( Cells: TPoint );
+begin
+  FCellX := CellX;
+  FCellY := CellY;
+end;
+function TPlayerModel.GetCells: TPoint;
+begin
+  Result := Point( FCellX, FCellY );
+end;
+
 procedure TForm1.CreateGround;
 begin
   Ground := TPlane.Create(Self);
   Ground.Parent := Viewport3D1;
-  Ground.Width := Grid.FCols * Grid.FTileSizeX + 10;
-  Ground.Height := Grid.FRows * Grid.FTileSizeY + 10;
-  Ground.Position.Point := Point3D((Grid.FCols-1)*Grid.FTileSizeX/2,
-                                   (Grid.FRows-1)*Grid.FTileSizeY/2,
+  Ground.Width := Board.FCols * Board.FTileSizeX + 10;
+  Ground.Height := Board.FRows * Board.FTileSizeY + 10;
+  Ground.Position.Point := Point3D((Board.FCols-1)*Board.FTileSizeX/2,
+                                   (Board.FRows-1)*Board.FTileSizeY/2,
                                    -0.01); // leggermente sotto le celle
   Ground.MaterialSource := TTextureMaterialSource.Create(Self);
   TTextureMaterialSource(Ground.MaterialSource).Texture.LoadFromFile('panchina.bmp');
@@ -651,23 +595,24 @@ begin
 end;
 procedure TForm1.MoveCameraForward(Sender: TObject);
 begin
-  Camera1.Position.X := Camera1.Position.X + Grid.FTileSizeX;
+  Camera1.Position.X := Camera1.Position.X + Board.FTileSizeX;
   // sposta di 1 cella in avanti
 end;
 
 procedure TForm1.MoveCameraBackward(Sender: TObject);
 begin
-  Camera1.Position.X := Camera1.Position.X - Grid.FTileSizeX;
+  Camera1.Position.X := Camera1.Position.X - Board.FTileSizeX;
   // sposta di 1 cella indietro
 end;
 
-function TForm1.GetPlayerModelFromBoard ( CellX, CellY: integer): TModel3D;
+function TForm1.GetPlayerFromBoard ( CellX, CellY: integer): TPlayerModel;
 var
   i: integer;
 begin
+  Result := nil;
   for i := 0 to High(Players) do begin
     if (Players[i].CellX = CellX) and (Players[i].CellY = CellY)  then begin
-      Result := Players[i].FModel;
+      Result := Players[i];
       Exit;
     end;
   end;

@@ -281,7 +281,7 @@ begin
   Col := StrToInt(Cells[0]);
   Row := StrToInt(Cells[1]);
 
-  Form1.TileMouseDown(Sender, Col, Row);
+  Form1.TileMouseDown(Sender, Button, Col, Row);
 end;
 procedure TTileGrid.LocalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
   X, Y: Single; RayPos, RayDir: TVector3D);
@@ -295,7 +295,7 @@ begin
   Col := StrToInt(Cells[0]);
   Row := StrToInt(Cells[1]);
 
-  Form1.TileMouseUp(Sender, Col, Row);
+  Form1.TileMouseUp(Sender, Button, Col, Row);
 end;
 
 procedure TTileGrid.SetBasePosition(BaseX, BaseY: Single);
