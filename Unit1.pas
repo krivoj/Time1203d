@@ -70,7 +70,6 @@ type
     { Public declarations }
     procedure SetupCameraTopView;
     procedure TileMouseDown(Sender:Tobject; Button: TMouseButton; CellX,CellY: integer);
-    procedure TileMouseUp(Sender:Tobject; Button: TMouseButton; CellX,CellY: integer);
     function GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayerModel;
 
     procedure CreatePlayers;
@@ -107,9 +106,6 @@ begin
   Viewport3D1.Visible := False;
   // Inizializza menu overlay
   InitMenu;
-  Grid[0]:= Reserve0;
-  Grid[1]:= Reserve1;
-  Grid[2]:= Board;
 
 
 end;
@@ -209,19 +205,14 @@ begin
       end;
 
         // Allinea la posizione di SelectedPlayer alla grid e alla cella di destinazione
-      SelectedPlayer.SetGridPosition( TPlane(Sender).Tag,CellX, CellY );
-      SelectedPlayer.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.X, SelectedPlayer.FModel.Position.Z);
+      SelectedPlayer.SetGridPosition( TPlane(Sender).Tag, CellX, CellY );
+      SelectedPlayer.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.Y, SelectedPlayer.FModel.Position.Z);
       SelectedPlayer := nil;
+      MouseStatus := ms_None;
 
     end;
   end;
   //  ShowMessage(Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]));
-end;
-procedure TForm1.TileMouseUp(Sender: TObject; Button: TMouseButton; CellX,CellY: integer);
-begin
-
-
-
 end;
 
 procedure TForm1.InitMenu;
@@ -317,9 +308,18 @@ begin
   //Grid := TTileGrid.Create(Self, Viewport3D1,  18,11,  'terrain.bmp');
   Reserve0:= TTileGrid.Create(Self, Viewport3D1, 0, 1,11, 'terrain.bmp');
   Reserve1:= TTileGrid.Create(Self, Viewport3D1, 1, 1,11, 'terrain.bmp');
+  Grid[0]:= Reserve0;
+  Grid[0].FGridIndex := 0;
+  Grid[1]:= Reserve1;
+  Grid[1].FGridIndex := 1;
+  Grid[2]:= Board;
+  Grid[2].FGridIndex := 2;
+
+
 
   Board.SetBasePosition(0,0);
   Board.SetRotationZ(0);         // verticale
+
   CreateGround;
 
   FieldDrawer := TFieldDrawer.Create(Self, Viewport3D1, Board);

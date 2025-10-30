@@ -300,7 +300,7 @@ begin
   Col := StrToInt(Cells[0]);
   Row := StrToInt(Cells[1]);
 
-  Form1.TileMouseUp(Sender, Button, Col, Row);
+//  Form1.TileMouseUp(Sender, Button, Col, Row);
 end;
 
 procedure TTileGrid.SetBasePosition(BaseX, BaseY: Single);
