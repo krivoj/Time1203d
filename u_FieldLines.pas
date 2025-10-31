@@ -43,7 +43,7 @@ begin
   FGrid := AGrid;
   CreateWhiteMaterial;
 
-  FLineThickness := Min(FGrid.FTileSizeX, FGrid.FTileSizeY) * 0.08;
+  FLineThickness := Min(FGrid.FTileSizeX, FGrid.FTileSizeY) * 0.03;
   FZOffset := FGrid.FTileDepth + 0.002;
 end;
 

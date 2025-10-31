@@ -163,8 +163,8 @@ begin
     bmp.Canvas.BeginScene;
     bmp.Canvas.Stroke.Color := TAlphaColorRec.Lime;
     bmp.Canvas.Stroke.Thickness := 4;
-    bmp.Canvas.Fill.Color := TAlphaColorRec.Null; // niente riempimento
-    bmp.Canvas.DrawRect(RectF(3, 3, 61, 61), 0, 0, [], 1);
+    bmp.Canvas.Fill.Color := TAlphaColorRec.Lime; // niente riempimento
+    bmp.Canvas.FillRect(RectF(3, 3, 61, 61), 0, 0, AllCorners, 1, TCornerType.Round);
     bmp.Canvas.EndScene;
 
     FHighlightMaterial := TTextureMaterialSource.Create(AOwner);
@@ -372,7 +372,7 @@ begin
 
   CellPosX := X * FTileSizeX + FTileSizeX / 2;
   CellPosY := Y * FTileSizeY + FTileSizeY / 2;
-  CellPosZ := FTileDepth / 2 + 0.05;
+  CellPosZ := FTileDepth / 2 + 0.01;
 
   HighlightPlane := TPlane.Create(FDummyRoot);
   HighlightPlane.Parent := FDummyRoot;
