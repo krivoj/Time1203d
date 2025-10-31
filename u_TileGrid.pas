@@ -1,9 +1,9 @@
-unit uTileGrid;
+unit u_TileGrid;
 
 interface
 
 uses
-  System.SysUtils, System.Classes, System.UITypes,
+  System.SysUtils, System.Classes, System.UITypes, System.Generics.Collections,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Objects3D,
   FMX.MaterialSources, FMX.Controls3D, FMX.Viewport3D, FMX.Types3D, System.Math.Vectors;
 
@@ -29,6 +29,8 @@ type
     FViewport: TViewport3D;
     FDummyRoot: TDummy;
     FDefaultMaterial: TTextureMaterialSource;
+    FHighlightMaterial: TColorMaterialSource; // <--- materiale unlit
+    procedure CommonCreate(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer);
     procedure LocalMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
       X, Y: Single; RayPos, RayDir: TVector3D);
     procedure LocalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
@@ -43,12 +45,15 @@ type
     FRows: Integer;
     FTiles: array of array of TModelTile;
     FGridIndex: Integer;
-    // Costruttori overload
+    HighlightPlanes: TObjectList<TRectangle3D>;
+
+    destructor Destroy; override;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
-      const DefaultTextureFile: string); overload; // tutte le celle uguali
+      const DefaultTextureFile: string); overload;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
-      const TextureFiles: TStringArray2D); overload; // celle individuali
-    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer; FieldBitmap: TBitmap); overload;
+      const TextureFiles: TStringArray2D); overload;
+    constructor Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
+      FieldBitmap: TBitmap); overload;
 
     procedure DrawGrid;
     procedure Free;
@@ -57,8 +62,10 @@ type
     procedure SetRotationZ(Angle: Single);
     procedure SetTileTexture(AOwner: TComponent; Col, Row: Integer; const TextureFile: string);
 
-    // Funzione aggiuntiva per creare materiale da bitmap dinamica
     procedure CreateDefaultMaterialFromBitmap(AOwner: TComponent; Bitmap: TBitmap);
+    procedure HighlightCell(X, Y: Integer);
+    procedure ClearHighlights;
+    procedure HighlightFormationsCols;
   end;
 
 function CreateSoccerFieldBitmap(TileWidth, TileHeight: Integer;
@@ -67,7 +74,7 @@ function CreateSoccerFieldBitmap(TileWidth, TileHeight: Integer;
 
 implementation
 
-uses Unit1, System.Math;
+uses Unit1, System.Math, u_core;
 
 { ===== TModelTile ===== }
 
@@ -127,27 +134,45 @@ end;
 
 { ===== TTileGrid ===== }
 
-constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
-  const DefaultTextureFile: string);
+procedure TTileGrid.CommonCreate(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer);
 begin
-  inherited Create;
   FViewport := AViewport;
   FTileSizeX := 1.0;
   FTileSizeY := 1.0;
   FTileDepth := 0.08;
-  FGridIndex:= Index;
+  FGridIndex := Index;
+  HighlightPlanes := TObjectList<TRectangle3D>.Create(True);
 
   FDummyRoot := TDummy.Create(FViewport);
   FDummyRoot.Parent := FViewport;
   FDummyRoot.Position.Point := Point3D(0, 0, 0);
 
-  FDefaultMaterial := TTextureMaterialSource.Create(AOwner);
-  if DefaultTextureFile <> '' then
-    FDefaultMaterial.Texture.LoadFromFile(DefaultTextureFile);
-
   FCols := Cols;
   FRows := Rows;
   SetLength(FTiles, FCols, FRows);
+
+  // crea il materiale di highlight una volta sola (unlit)
+  FHighlightMaterial := TColorMaterialSource.Create(AOwner);
+  FHighlightMaterial.Color := TAlphaColorRec.Lime;
+end;
+
+destructor TTileGrid.Destroy;
+begin
+  ClearHighlights;
+  HighlightPlanes.Free;
+  FHighlightMaterial.Free;
+  inherited;
+end;
+
+constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
+  const DefaultTextureFile: string);
+begin
+  inherited Create;
+  CommonCreate(AOwner, AViewport, Index, Cols, Rows);
+
+  FDefaultMaterial := TTextureMaterialSource.Create(AOwner);
+  if DefaultTextureFile <> '' then
+    FDefaultMaterial.Texture.LoadFromFile(DefaultTextureFile);
 
   InitializeGrid(AOwner, Cols, Rows, nil, FDefaultMaterial);
 end;
@@ -156,41 +181,16 @@ constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Index, 
   const TextureFiles: TStringArray2D);
 begin
   inherited Create;
-  FViewport := AViewport;
-  FTileSizeX := 1.0;
-  FTileSizeY := 1.0;
-  FTileDepth := 0.08;
-  FGridIndex:= Index;
-
-  FDummyRoot := TDummy.Create(FViewport);
-  FDummyRoot.Parent := FViewport;
-  FDummyRoot.Position.Point := Point3D(0, 0, 0);
-
-  FCols := Cols;
-  FRows := Rows;
-  SetLength(FTiles, FCols, FRows);
-
+  CommonCreate(AOwner, AViewport, Index, Cols, Rows);
   InitializeGrid(AOwner, Cols, Rows, TextureFiles, nil);
 end;
 
-constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer; FieldBitmap: TBitmap);
+constructor TTileGrid.Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
+  FieldBitmap: TBitmap);
 begin
   inherited Create;
-  FViewport := AViewport;
-  FTileSizeX := 1.0;
-  FTileSizeY := 1.0;
-  FTileDepth := 0.08;
-  FGridIndex:= Index;
+  CommonCreate(AOwner, AViewport, Index, Cols, Rows);
 
-  FDummyRoot := TDummy.Create(FViewport);
-  FDummyRoot.Parent := FViewport;
-  FDummyRoot.Position.Point := Point3D(0, 0, 0);
-
-  FCols := Cols;
-  FRows := Rows;
-  SetLength(FTiles, FCols, FRows);
-
-  // creo materiale condiviso dalla bitmap passata
   if FieldBitmap <> nil then
   begin
     FDefaultMaterial := TTextureMaterialSource.Create(AOwner);
@@ -199,7 +199,6 @@ begin
   else
     FDefaultMaterial := nil;
 
-  // inizializzo la griglia assegnando il materiale a tutte le celle
   InitializeGrid(AOwner, Cols, Rows, nil, FDefaultMaterial);
 end;
 
@@ -227,7 +226,7 @@ begin
       FTiles[X, Y].FPlane.OnMouseDown := LocalMouseDown;
       FTiles[X, Y].FPlane.OnMouseUp := LocalMouseUp;
       FTiles[X, Y].FPlane.HitTest := True;
-      FTiles[X, Y].GridIndex := FGridIndex; // per sicurezza a tutti e 2
+      FTiles[X, Y].GridIndex := FGridIndex;
       FTiles[X, Y].FPlane.Tag := FGridIndex;
       FTiles[X, Y].CellX := X;
       FTiles[X, Y].CellY := Y;
@@ -285,9 +284,9 @@ begin
   Cells := Plane.TagString.Split(['/'], TStringSplitOptions.ExcludeEmpty);
   Col := StrToInt(Cells[0]);
   Row := StrToInt(Cells[1]);
-
   Form1.TileMouseDown(Sender, Button, Col, Row);
 end;
+
 procedure TTileGrid.LocalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
   X, Y: Single; RayPos, RayDir: TVector3D);
 var
@@ -299,8 +298,6 @@ begin
   Cells := Plane.TagString.Split(['/'], TStringSplitOptions.ExcludeEmpty);
   Col := StrToInt(Cells[0]);
   Row := StrToInt(Cells[1]);
-
-//  Form1.TileMouseUp(Sender, Button, Col, Row);
 end;
 
 procedure TTileGrid.SetBasePosition(BaseX, BaseY: Single);
@@ -312,8 +309,7 @@ begin
       FTiles[X, Y].SetPosition(
         BaseX + X * FTileSizeX + FTileSizeX / 2,
         BaseY + (FRows - 1 - Y) * FTileSizeY + FTileSizeY / 2,
-        FTileDepth / 2
-      );
+        FTileDepth / 2);
 end;
 
 procedure TTileGrid.SetRotationZ(Angle: Single);
@@ -322,7 +318,7 @@ begin
     FDummyRoot.RotationAngle.Z := Angle;
 end;
 
-{ ===== Funzione per bitmap campo da calcio (FMX) ===== }
+{ ===== Funzione per bitmap campo da calcio ===== }
 
 function CreateSoccerFieldBitmap(TileWidth, TileHeight: Integer;
   BaseColor, BorderColor: TAlphaColor;
@@ -344,7 +340,6 @@ begin
         fx := 1.0;
         if BorderLeft > 0 then fx := Min(fx, x / BorderLeft);
         if BorderRight > 0 then fx := Min(fx, (TileWidth - 1 - x) / BorderRight);
-
         fy := 1.0;
         if BorderTop > 0 then fy := Min(fy, y / BorderTop);
         if BorderBottom > 0 then fy := Min(fy, (TileHeight - 1 - y) / BorderBottom);
@@ -356,7 +351,6 @@ begin
         c.R := Round(c.R * fade + TAlphaColorRec(BorderColor).R * (1 - fade));
         c.G := Round(c.G * fade + TAlphaColorRec(BorderColor).G * (1 - fade));
         c.B := Round(c.B * fade + TAlphaColorRec(BorderColor).B * (1 - fade));
-
         bmpData.SetPixel(x, y, c.Color);
       end;
   finally
@@ -368,9 +362,53 @@ procedure TTileGrid.CreateDefaultMaterialFromBitmap(AOwner: TComponent; Bitmap: 
 begin
   if FDefaultMaterial <> nil then
     FDefaultMaterial.DisposeOf;
-
   FDefaultMaterial := TTextureMaterialSource.Create(AOwner);
   FDefaultMaterial.Texture.Assign(Bitmap);
+end;
+
+procedure TTileGrid.HighlightCell(X, Y: Integer);
+var
+  HighlightPlane: TRectangle3D;
+  CellPosX, CellPosY, CellPosZ: Single;
+begin
+  if (X < 0) or (X >= FCols) or (Y < 0) or (Y >= FRows) then
+    Exit;
+
+  CellPosX := X * FTileSizeX + FTileSizeX / 2;
+  CellPosY := Y * FTileSizeY + FTileSizeY / 2;
+  CellPosZ := FTileDepth / 2 + 0.02;
+
+  HighlightPlane := TRectangle3D.Create(FDummyRoot);
+  HighlightPlane.Parent := FDummyRoot;
+  HighlightPlane.Width := FTileSizeX;
+  HighlightPlane.Height := FTileSizeY;
+  HighlightPlane.Depth := 0.01;
+  HighlightPlane.Position.Point := Point3D(CellPosX, CellPosY, CellPosZ);
+  HighlightPlane.MaterialSource := FHighlightMaterial;
+  HighlightPlane.Opacity := 1;
+  HighlightPlane.TwoSide := True;
+  HighlightPlane.HitTest := False;
+
+  HighlightPlanes.Add(HighlightPlane);
+
+  if Assigned(FViewport) then
+    FViewport.Repaint;
+end;
+
+procedure TTileGrid.ClearHighlights;
+begin
+  HighlightPlanes.Clear;
+  if Assigned(FViewport) then
+    FViewport.Repaint;
+end;
+
+procedure TTileGrid.HighlightFormationsCols;
+var
+  y, i: Integer;
+begin
+  for i := Low(FormationCols) to High(FormationCols) do
+    for y := 0 to FRows - 1 do
+      HighlightCell(FormationCols[i], y);
 end;
 
 end.

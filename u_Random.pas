@@ -8,7 +8,7 @@
 (* Random number generator classes                                  *)
 (********************************************************************)
 
-unit uRandom;
+unit u_Random;
 //download by http://down.liehuo.net
 
 interface

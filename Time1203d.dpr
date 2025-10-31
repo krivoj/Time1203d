@@ -14,13 +14,16 @@ uses
   System.StartUpCopy,
   FMX.Forms,
   Unit1 in 'Unit1.pas' {Form1},
-  uTileGrid in 'uTileGrid.pas',
-  uFieldLines in 'uFieldLines.pas',
+  u_TileGrid in 'u_TileGrid.pas',
+  u_FieldLines in 'u_FieldLines.pas',
   u_sqlCreateSave in 'u_sqlCreateSave.pas',
   u_GenerateCalendar in 'u_GenerateCalendar.pas',
-  uRandom in 'uRandom.pas',
+  u_Random in 'u_Random.pas',
   u_SystemUtils in 'u_SystemUtils.pas',
-  u_PlayerStatsPanel in 'u_PlayerStatsPanel.pas';
+  u_PlayerStatsPanel in 'u_PlayerStatsPanel.pas',
+  u_core in 'u_core.pas',
+  u_PlayerModel in 'u_PlayerModel.pas',
+  u_Traits in 'u_Traits.pas';
 
 {$R *.res}
 
