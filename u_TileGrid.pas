@@ -3,12 +3,12 @@ unit u_TileGrid;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.UITypes, System.Generics.Collections,
+  System.SysUtils, System.Classes, System.UITypes, System.Generics.Collections, system.Types,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Objects3D,
   FMX.MaterialSources, FMX.Controls3D, FMX.Viewport3D, FMX.Types3D, System.Math.Vectors;
 
 type
-  TStringArray2D = array of array of string; // tipo 2D per array di file
+  TStringArray2D = array of array of string;
 
   TModelTile = class
   private
@@ -29,7 +29,7 @@ type
     FViewport: TViewport3D;
     FDummyRoot: TDummy;
     FDefaultMaterial: TTextureMaterialSource;
-    FHighlightMaterial: TColorMaterialSource; // <--- materiale unlit
+    FHighlightMaterial: TTextureMaterialSource; // texture per highlight
     procedure CommonCreate(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer);
     procedure LocalMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
       X, Y: Single; RayPos, RayDir: TVector3D);
@@ -37,6 +37,7 @@ type
       X, Y: Single; RayPos, RayDir: TVector3D);
     procedure InitializeGrid(AOwner: TComponent; Cols, Rows: Integer;
       const TextureFiles: TStringArray2D; SharedMaterial: TTextureMaterialSource);
+    procedure CreateHighlightMaterialFromBitmap(AOwner: TComponent);
   public
     FTileSizeX: Single;
     FTileSizeY: Single;
@@ -45,7 +46,7 @@ type
     FRows: Integer;
     FTiles: array of array of TModelTile;
     FGridIndex: Integer;
-    HighlightPlanes: TObjectList<TRectangle3D>;
+    HighlightPlanes: TObjectList<TPlane>;
 
     destructor Destroy; override;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer;
@@ -56,13 +57,11 @@ type
       FieldBitmap: TBitmap); overload;
 
     procedure DrawGrid;
-    procedure Free;
 
     procedure SetBasePosition(BaseX, BaseY: Single);
     procedure SetRotationZ(Angle: Single);
     procedure SetTileTexture(AOwner: TComponent; Col, Row: Integer; const TextureFile: string);
 
-    procedure CreateDefaultMaterialFromBitmap(AOwner: TComponent; Bitmap: TBitmap);
     procedure HighlightCell(X, Y: Integer);
     procedure ClearHighlights;
     procedure HighlightFormationsCols;
@@ -111,7 +110,7 @@ end;
 
 procedure TModelTile.SetTexture(AOwner: TComponent; const TextureFile: string);
 begin
-  if (FMaterial <> nil) and (FMaterial.Owner <> AOwner) then
+  if (FMaterial = nil) or (FMaterial.Owner <> AOwner) then
     FMaterial := TTextureMaterialSource.Create(AOwner);
   FMaterial.Texture.LoadFromFile(TextureFile);
   FPlane.MaterialSource := FMaterial;
@@ -141,7 +140,7 @@ begin
   FTileSizeY := 1.0;
   FTileDepth := 0.08;
   FGridIndex := Index;
-  HighlightPlanes := TObjectList<TRectangle3D>.Create(True);
+  HighlightPlanes := TObjectList<TPlane>.Create(True);
 
   FDummyRoot := TDummy.Create(FViewport);
   FDummyRoot.Parent := FViewport;
@@ -151,13 +150,46 @@ begin
   FRows := Rows;
   SetLength(FTiles, FCols, FRows);
 
-  // crea il materiale di highlight una volta sola (unlit)
-  FHighlightMaterial := TColorMaterialSource.Create(AOwner);
-  FHighlightMaterial.Color := TAlphaColorRec.Lime;
+  CreateHighlightMaterialFromBitmap(AOwner);
 end;
 
-destructor TTileGrid.Destroy;
+procedure TTileGrid.CreateHighlightMaterialFromBitmap(AOwner: TComponent);
+var
+  bmp: TBitmap;
 begin
+  bmp := TBitmap.Create(64, 64);
+    // trasparente con bordo lime
+    bmp.Clear(TAlphaColors.Null);
+    bmp.Canvas.BeginScene;
+    bmp.Canvas.Stroke.Color := TAlphaColorRec.Lime;
+    bmp.Canvas.Stroke.Thickness := 4;
+    bmp.Canvas.Fill.Color := TAlphaColorRec.Null; // niente riempimento
+    bmp.Canvas.DrawRect(RectF(3, 3, 61, 61), 0, 0, [], 1);
+    bmp.Canvas.EndScene;
+
+    FHighlightMaterial := TTextureMaterialSource.Create(AOwner);
+    FHighlightMaterial.Texture.Assign(bmp);
+end;
+destructor TTileGrid.Destroy;
+var
+  X,Y: integer;
+begin
+  for Y := 0 to FRows - 1 do
+    for X := 0 to FCols - 1 do
+      FTiles[X, Y].Free;
+
+  if FDummyRoot <> nil then
+  begin
+    FDummyRoot.DisposeOf;
+    FDummyRoot := nil;
+  end;
+
+  if FDefaultMaterial <> nil then
+  begin
+    FDefaultMaterial.DisposeOf;
+    FDefaultMaterial := nil;
+  end;
+
   ClearHighlights;
   HighlightPlanes.Free;
   FHighlightMaterial.Free;
@@ -252,26 +284,6 @@ begin
         FTileDepth / 2);
 end;
 
-procedure TTileGrid.Free;
-var
-  X, Y: Integer;
-begin
-  for Y := 0 to FRows - 1 do
-    for X := 0 to FCols - 1 do
-      FTiles[X, Y].Free;
-
-  if FDummyRoot <> nil then
-  begin
-    FDummyRoot.DisposeOf;
-    FDummyRoot := nil;
-  end;
-
-  if FDefaultMaterial <> nil then
-  begin
-    FDefaultMaterial.DisposeOf;
-    FDefaultMaterial := nil;
-  end;
-end;
 
 procedure TTileGrid.LocalMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
   X, Y: Single; RayPos, RayDir: TVector3D);
@@ -289,15 +301,7 @@ end;
 
 procedure TTileGrid.LocalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
   X, Y: Single; RayPos, RayDir: TVector3D);
-var
-  Cells: TArray<string>;
-  Col, Row: Integer;
-  Plane: TPlane;
 begin
-  Plane := TPlane(Sender);
-  Cells := Plane.TagString.Split(['/'], TStringSplitOptions.ExcludeEmpty);
-  Col := StrToInt(Cells[0]);
-  Row := StrToInt(Cells[1]);
 end;
 
 procedure TTileGrid.SetBasePosition(BaseX, BaseY: Single);
@@ -318,7 +322,7 @@ begin
     FDummyRoot.RotationAngle.Z := Angle;
 end;
 
-{ ===== Funzione per bitmap campo da calcio ===== }
+{ ===== Bitmap Campo ===== }
 
 function CreateSoccerFieldBitmap(TileWidth, TileHeight: Integer;
   BaseColor, BorderColor: TAlphaColor;
@@ -358,17 +362,9 @@ begin
   end;
 end;
 
-procedure TTileGrid.CreateDefaultMaterialFromBitmap(AOwner: TComponent; Bitmap: TBitmap);
-begin
-  if FDefaultMaterial <> nil then
-    FDefaultMaterial.DisposeOf;
-  FDefaultMaterial := TTextureMaterialSource.Create(AOwner);
-  FDefaultMaterial.Texture.Assign(Bitmap);
-end;
-
 procedure TTileGrid.HighlightCell(X, Y: Integer);
 var
-  HighlightPlane: TRectangle3D;
+  HighlightPlane: TPlane;
   CellPosX, CellPosY, CellPosZ: Single;
 begin
   if (X < 0) or (X >= FCols) or (Y < 0) or (Y >= FRows) then
@@ -376,18 +372,17 @@ begin
 
   CellPosX := X * FTileSizeX + FTileSizeX / 2;
   CellPosY := Y * FTileSizeY + FTileSizeY / 2;
-  CellPosZ := FTileDepth / 2 + 0.02;
+  CellPosZ := FTileDepth / 2 + 0.05;
 
-  HighlightPlane := TRectangle3D.Create(FDummyRoot);
+  HighlightPlane := TPlane.Create(FDummyRoot);
   HighlightPlane.Parent := FDummyRoot;
   HighlightPlane.Width := FTileSizeX;
   HighlightPlane.Height := FTileSizeY;
-  HighlightPlane.Depth := 0.01;
-  HighlightPlane.Position.Point := Point3D(CellPosX, CellPosY, CellPosZ);
   HighlightPlane.MaterialSource := FHighlightMaterial;
-  HighlightPlane.Opacity := 1;
+  HighlightPlane.Opacity := 0.3;
   HighlightPlane.TwoSide := True;
   HighlightPlane.HitTest := False;
+  HighlightPlane.Position.Point := Point3D(CellPosX, CellPosY, CellPosZ);
 
   HighlightPlanes.Add(HighlightPlane);
 
