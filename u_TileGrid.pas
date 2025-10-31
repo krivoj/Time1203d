@@ -162,9 +162,9 @@ begin
     bmp.Clear(TAlphaColors.Null);
     bmp.Canvas.BeginScene;
     bmp.Canvas.Stroke.Color := TAlphaColorRec.Lime;
-    bmp.Canvas.Stroke.Thickness := 4;
+    bmp.Canvas.Stroke.Thickness := 1;
     bmp.Canvas.Fill.Color := TAlphaColorRec.Lime; // niente riempimento
-    bmp.Canvas.FillRect(RectF(3, 3, 61, 61), 0, 0, AllCorners, 1, TCornerType.Round);
+    bmp.Canvas.FillRect(RectF(1, 1, 63, 63), 0, 0, AllCorners, 1, TCornerType.Round);
     bmp.Canvas.EndScene;
 
     FHighlightMaterial := TTextureMaterialSource.Create(AOwner);
