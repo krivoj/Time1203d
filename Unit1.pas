@@ -415,15 +415,12 @@ begin
                                          Board.FTiles[17, I].FPlane.Position.X,
                                          Board.FTiles[17, I].FPlane.Position.Y);
 
-    Players[I].GridIndex := Grid[2].FGridIndex;
-    Players[I].CellX := 17;
-    Players[I].CellY := I;
+    Players[I+11].GridIndex := Grid[2].FGridIndex;
+    Players[I+11].CellX := 17;
+    Players[I+11].CellY := I;
     Players[i+11].FSurname := 'Marchesini';
   end;
 
-
-
-  Players[3].SetPosition(Board.FTiles[15, 4].FPlane.Position.Point.X, Board.FTiles[15, 4].FPlane.Position.Point.Y, 0.42);
 
 
 end;
@@ -470,7 +467,7 @@ begin
   FModel := TModel3D(BaseModel.Clone(AOwner));
   FModel.Parent := AViewport;
   FModel.Visible := True;
-
+  FModel.HitTest := False;
   // Applica la texture a tutte le mesh
   for Mesh in FModel.MeshCollection do
     Mesh.MaterialSource := ATexture;
@@ -486,6 +483,7 @@ begin
   // 🔹 Etichetta 3D con il cognome
   FLabel3D := TText3D.Create(FModel);
   FLabel3D.Parent := FModel;  // figlia del modello → si muove con lui
+  FLabel3D.HitTest := false;
   FLabel3D.Depth := 0.3;
   FLabel3D.Width := 3;
   FLabel3D.Height := 2;
@@ -510,9 +508,9 @@ begin
 end;
 procedure TPlayerModel.SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
 begin
-  FGridIndex := GridIndex;
-  FCellX := CellX;
-  FCellY := CellY;
+  FGridIndex := AGridIndex;
+  FCellX := ACellX;
+  FCellY := ACellY;
 end;
 procedure TPlayerModel.SetPosition(X, Y, Z: Single);
 begin
