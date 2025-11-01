@@ -10,7 +10,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FMX.Types3D,FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,u_SystemUtils,System.IOUtils,
-  FMX.Types, u_playerModel, u_core;
+  FMX.Types, u_playerModel, u_core, u_Types;
 
 Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
 
@@ -43,7 +43,7 @@ type
     { Public declarations }
     procedure SetupCameraTopView;
     procedure TileMouseDown(Sender:Tobject; Button: TMouseButton; CellX,CellY: integer);
-    function GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayerModel;
+    function GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayer;
 
     procedure CreatePlayers;
     procedure CreateGround;
@@ -56,10 +56,10 @@ var
   Form1: TForm1;
   BtnExit,BtnNewGame,BtnLoadGame: TButton;
   Board, Reserve0, Reserve1: TTileGrid;
-  SelectedPlayer: TPlayerModel;
+  SelectedPlayer: TPlayer;
   StartTilePos: TPoint;
   StartPoint3DPos: TPoint3D;
-  Players: array[0..21] of TPlayerModel;
+  Players: array[0..21] of TPlayer;
   tile: TModelTile;
   Mat: TTextureMaterialSource ;
   Ground: TPlane;
@@ -156,7 +156,7 @@ begin
 end;
 procedure TForm1.TileMouseDown(Sender: TObject; Button: TMouseButton; CellX,CellY: integer);
 var
-  aPlayer: TPlayerModel;
+  aPlayer: TPlayer;
   label f1;
 begin
   if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
@@ -164,7 +164,7 @@ begin
     if SelectedPlayer = nil then exit;
 
     StartTilePos := Point ( CellX, CellY );
-    StartPoint3DPos :=  SelectedPlayer.FModel.Position.Point;
+    StartPoint3DPos :=  SelectedPlayer.FPlayerModel.FModel.Position.Point;
     MouseStatus := Ms_Waiting_For_Destination_Cell;
     //if not SelectedPlayer.HasTrait[TRAIT_GOALKEEPER) then
       Grid[2].HighlightFormationsCols;
@@ -178,14 +178,14 @@ begin
         // se lo trova lo mette al posto di selectedPlayer
         aPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY );
         if aPlayer <> nil then begin // se c'è un player lo metto al posto di SelectedPlayer
-          aPlayer.SetGridPosition( SelectedPlayer.GridIndex , SelectedPlayer.CellX, SelectedPlayer.CellY );
-          aPlayer.SetPosition( SelectedPlayer.FModel.Position.X, SelectedPlayer.FModel.Position.Y, SelectedPlayer.FModel.Position.Z );
+          aPlayer.SetGridPosition( SelectedPlayer.FGridIndex , SelectedPlayer.CellX, SelectedPlayer.CellY );
+          aPlayer.FPlayerModel.SetPosition( SelectedPlayer.FPlayerModel.FModel.Position.X, SelectedPlayer.FPlayerModel.FModel.Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z );
         end;
 
 
         // Allinea la posizione di SelectedPlayer alla grid e alla cella di destinazione
         SelectedPlayer.SetGridPosition( TPlane(Sender).Tag, CellX, CellY );
-        SelectedPlayer.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.Y, SelectedPlayer.FModel.Position.Z);
+        SelectedPlayer.FPlayerModel.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z);
 f1:
         SelectedPlayer := nil;
         MouseStatus := ms_None;
@@ -350,6 +350,9 @@ var
   Color: TAlphaColor;
   FTexture0, FTexture1: TTextureMaterialSource;
   BaseModel: TModel3D;
+  AGridCell: TGridCell;
+  s: ArrayStats;
+  t: ArrayTraits;
 begin
 // Carica il modello base UNA SOLA VOLTA
   BaseModel := TModel3D.Create(Self);
@@ -357,41 +360,41 @@ begin
   BaseModel.Visible := False; // non mostrarlo nella scena
   BaseModel.Parent := Viewport3D1;
 
-// ROSSI
-// Crea materiale testurizzato
+
+  // Crea materiale testurizzato
   FTexture0 := TTextureMaterialSource.Create(Self);
   FTexture0.Parent := Viewport3D1;
-  //FTexture.Texture.LoadFromFile('texture_diffuse.bmp'); // nel caso di ca_deer
-  //FTexture0.Texture.LoadFromFile('mix.bmp'); // nel caso di ca_deer
   FTexture0.Texture.LoadFromFile('mix2.bmp'); // nel caso di ca_deer
 
 
   ModifyPixels(FTexture0.Texture.Canvas.Bitmap, TAlphaColorRec.Blue , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Yellow ,TAlphaColorRec.red, TAlphaColorRec.Aqua );
 
   for I := 0 to 10 do begin
-    Players[I] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
-                                      BaseModel, FTexture0,
-                                      Board.FTiles[0, I].FPlane.Position.X,
-                                      Board.FTiles[0, I].FPlane.Position.Y );
-    Players[I].GridIndex := Grid[2].FGridIndex;
+    Players[I] :=  TPlayer.Create ( Self, Viewport3D1,
+                                    BaseModel, FTexture0,
+                                    Board.FTiles[0, I].FPlane.Position.X,
+                                    Board.FTiles[0, I].FPlane.Position.Y,
+                                    I, 0, 0, 0, '', '' ,S, T );
+
+    Players[I].FGridIndex := Grid[2].FGridIndex;
     Players[I].CellX := 0;
     Players[I].CellY := I;
     Players[i].FSurname := IntTostr(i);
   end;
 
-  // BLU
-// Crea materiale testurizzato
+  // Crea materiale testurizzato
   FTexture1 := TTextureMaterialSource.Create(Self);
   FTexture1.Parent := Viewport3D1;
   FTexture1.Texture.LoadFromFile('MIX2.bmp'); // nel caso di ca_deer
   ModifyPixels(FTexture1.Texture.Canvas.Bitmap, TAlphaColorRec.Blue , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Yellow ,TAlphaColorRec.red, TAlphaColorRec.Aqua );
   for I := 0 to 10 do begin
-    Players[I+11] := TPlayerModel.CreateFromClone(Self, Viewport3D1,
-                                         BaseModel, FTexture1,
-                                         Board.FTiles[17, I].FPlane.Position.X,
-                                         Board.FTiles[17, I].FPlane.Position.Y);
+    Players[I+11] :=  TPlayer.Create ( Self, Viewport3D1,
+                                    BaseModel, FTexture1,
+                                    Board.FTiles[17, I].FPlane.Position.X,
+                                    Board.FTiles[17, I].FPlane.Position.Y,
+                                    I, 0, 0, 0, '', '' ,S, T );
 
-    Players[I+11].GridIndex := Grid[2].FGridIndex;
+    Players[I+11].FGridIndex := Grid[2].FGridIndex;
     Players[I+11].CellX := 17;
     Players[I+11].CellY := I;
     Players[i+11].FSurname := 'Marchesini';
@@ -518,13 +521,13 @@ begin
   // sposta di 1 cella indietro
 end;
 
-function TForm1.GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayerModel;
+function TForm1.GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayer;
 var
   i: integer;
 begin
   Result := nil;
   for i := 0 to High(Players) do begin
-    if ( Players[i].GridIndex = GridIndex ) and (Players[i].CellX = CellX) and (Players[i].CellY = CellY) then begin
+    if ( Players[i].FGridIndex = GridIndex ) and (Players[i].CellX = CellX) and (Players[i].CellY = CellY) then begin
       Result := Players[i];
       Exit;
     end;

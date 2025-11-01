@@ -23,7 +23,8 @@ uses
   u_PlayerStatsPanel in 'u_PlayerStatsPanel.pas',
   u_core in 'u_core.pas',
   u_PlayerModel in 'u_PlayerModel.pas',
-  u_Traits in 'u_Traits.pas';
+  u_Traits in 'u_Traits.pas',
+  u_Types in 'u_Types.pas';
 
 {$R *.res}
 
