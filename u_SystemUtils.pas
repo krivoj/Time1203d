@@ -30,9 +30,12 @@ begin
       for x := 0 to Bitmap.Width - 1 do
       begin
         Pixel := Data.GetPixel(x, y);
-        // Esempio: inverti i colori
         if Pixel = Color1From then
           Pixel := Color1To;
+        if Pixel = Color2From then
+          Pixel := Color2To;
+        if Pixel = Color3From then
+          Pixel := Color3To;
         Data.SetPixel(x, y, Pixel);
       end;
   finally

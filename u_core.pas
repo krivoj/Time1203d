@@ -14,6 +14,7 @@ type
 
     procedure SetSurname(const Value: string);
   public
+    FGuid: Integer;
     FPlayerModel: TPlayerModel;
     FGridIndex: Integer;
     FDefaultCellX: Integer;
@@ -27,7 +28,7 @@ type
     FTraits: ArrayTraits;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel : TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
-                       const AGuid, aTeam, aGuidTeam, aMatchesPlayed : integer; const aName, aSurname: string; var rStats:ArrayStats; var rTraits : ArrayTraits
+                       const AGuid, aTeam, aGuidTeam, aMatchesPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
                        );
 
     destructor Destroy; override;
@@ -69,7 +70,7 @@ begin
 end;
 constructor TPlayer.Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel: TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
-                       const AGuid, aTeam, aGuidTeam, aMatchesPlayed : integer; const aName, aSurname: string; var rStats:ArrayStats; var rTraits : ArrayTraits
+                       const AGuid, aTeam, aGuidTeam, aMatchesPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
                        );
 begin
   if BaseModel <> nil then

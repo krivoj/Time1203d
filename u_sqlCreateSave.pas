@@ -28,15 +28,16 @@ const
     '  "ballcontrol" INTEGER NOT NULL DEFAULT 1,' + sLineBreak +
     '  "shot" INTEGER NOT NULL DEFAULT 1,' + sLineBreak +
     '  "heading" INTEGER NOT NULL DEFAULT 1,' + sLineBreak +
-    '  "talentid1" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
-    '  "talentid2" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
-    '  "talentid3" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
-    '  "talentid4" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
+    '  "trait0" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
+    '  "trait1" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
+    '  "trait2" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
+    '  "trait3" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
+    '  "trait4" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
+    '  "trait5" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
     '  "history" TEXT NOT NULL DEFAULT ''0,0,0,0,0,0'',' + sLineBreak +
     '  "xp" TEXT NOT NULL DEFAULT ''0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0'',' + sLineBreak +
     '  "matches_played" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
     '  "matches_left" INTEGER NOT NULL DEFAULT 570,' + sLineBreak +
-    '  "face" INTEGER NOT NULL DEFAULT 1,' + sLineBreak +
     '  "country" INTEGER NOT NULL DEFAULT 1,' + sLineBreak +
     '  "fitness" INTEGER NOT NULL DEFAULT 1,' + sLineBreak +
     '  "morale" INTEGER NOT NULL DEFAULT 1' + sLineBreak +
@@ -48,6 +49,7 @@ const
     '  "team" INTEGER NOT NULL DEFAULT 0,' + sLineBreak +
     '  "name" TEXT,' + sLineBreak +
     '  "matchesplayed" INTEGER NOT NULL DEFAULT 0' + sLineBreak +
+
     ');' + sLineBreak +
 
     'DROP TABLE IF EXISTS "results";' + sLineBreak +

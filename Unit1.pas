@@ -1,5 +1,7 @@
 ﻿unit Unit1;
-
+ { TODO :
+Al posto di MatchesPlayed e matchesLeft usare SeasonPlayed e SeasonLeft o Remain
+e vengono aggiornate alla fine di ogni stagione  in quanto season_match è 38 ma anche 30. }
 interface
 
 uses
@@ -10,7 +12,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FMX.Types3D,FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,u_SystemUtils,System.IOUtils,
-  FMX.Types, u_playerModel, u_core, u_Types;
+  FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Traits;
 
 Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
 
@@ -77,7 +79,6 @@ begin
   Viewport3D1.Visible := False;
   // Inizializza menu overlay
   InitMenu;
-
 
 end;
 
@@ -316,6 +317,7 @@ begin
   Reserve1.SetRotationZ(0);        // verticale speculare
   CreatePlayers;
 
+  Form1.WindowState := TWindowState.wsMaximized;
   // Camera
   SetupCameraTopView;
   //SetupFieldLights;
@@ -348,11 +350,13 @@ var
   i, row, col, Count: Integer;
   tile: TModelTile;
   Color: TAlphaColor;
-  FTexture0, FTexture1: TTextureMaterialSource;
+  FTexture0, FTexture1, FTextureGK, FinalTexture: TTextureMaterialSource;
   BaseModel: TModel3D;
   AGridCell: TGridCell;
-  s: ArrayStats;
-  t: ArrayTraits;
+  S: ArrayStats;
+  T: ArrayTraits;
+  ABasePlayer: PlayerTemplate;
+  TmpPlayer: TPlayer;
 begin
 // Carica il modello base UNA SOLA VOLTA
   BaseModel := TModel3D.Create(Self);
@@ -362,44 +366,57 @@ begin
 
 
   // Crea materiale testurizzato
+  FTextureGK := TTextureMaterialSource.Create(Self);
+  FTextureGK.Parent := Viewport3D1;
+  FTextureGK.Texture.LoadFromFile('mix2.bmp'); // nel caso di ca_deer
+
   FTexture0 := TTextureMaterialSource.Create(Self);
   FTexture0.Parent := Viewport3D1;
   FTexture0.Texture.LoadFromFile('mix2.bmp'); // nel caso di ca_deer
 
-
-  ModifyPixels(FTexture0.Texture.Canvas.Bitmap, TAlphaColorRec.Blue , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Yellow ,TAlphaColorRec.red, TAlphaColorRec.Aqua );
-
-  for I := 0 to 10 do begin
-    Players[I] :=  TPlayer.Create ( Self, Viewport3D1,
-                                    BaseModel, FTexture0,
-                                    Board.FTiles[0, I].FPlane.Position.X,
-                                    Board.FTiles[0, I].FPlane.Position.Y,
-                                    I, 0, 0, 0, '', '' ,S, T );
-
-    Players[I].FGridIndex := Grid[2].FGridIndex;
-    Players[I].CellX := 0;
-    Players[I].CellY := I;
-    Players[i].FSurname := IntTostr(i);
-  end;
-
-  // Crea materiale testurizzato
   FTexture1 := TTextureMaterialSource.Create(Self);
   FTexture1.Parent := Viewport3D1;
   FTexture1.Texture.LoadFromFile('MIX2.bmp'); // nel caso di ca_deer
-  ModifyPixels(FTexture1.Texture.Canvas.Bitmap, TAlphaColorRec.Blue , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Yellow ,TAlphaColorRec.red, TAlphaColorRec.Aqua );
-  for I := 0 to 10 do begin
-    Players[I+11] :=  TPlayer.Create ( Self, Viewport3D1,
-                                    BaseModel, FTexture1,
-                                    Board.FTiles[17, I].FPlane.Position.X,
-                                    Board.FTiles[17, I].FPlane.Position.Y,
-                                    I, 0, 0, 0, '', '' ,S, T );
 
-    Players[I+11].FGridIndex := Grid[2].FGridIndex;
-    Players[I+11].CellX := 17;
-    Players[I+11].CellY := I;
-    Players[i+11].FSurname := 'Marchesini';
+
+  ModifyPixels(FTextureGK.Texture.Canvas.Bitmap, TAlphaColorRec.Red , TAlphaColorRec.Gray  , TAlphaColorRec.Blue, TAlphaColorRec.Gray ,TAlphaColorRec.Lime, TAlphaColorRec.Black );
+  ModifyPixels(FTexture0.Texture.Canvas.Bitmap, TAlphaColorRec.Red , TAlphaColorRec.Red  , TAlphaColorRec.Blue, TAlphaColorRec.Blue ,TAlphaColorRec.Lime, TAlphaColorRec.White );
+
+  for I := 0 to 21 do begin
+    ABasePlayer := CreateRandomPlayer (Templates[I] ,0);
+
+    //Genero un player temporaneo (senza ModelPlayer) per riempire la classe e passare gli array.
+    TmpPlayer := TPlayer.Create ( Self, nil,
+                                    nil, nil,
+                                    0,
+                                    0,
+                                    I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].MatchesPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.DefaultStat , ABasePlayer.Traits );
+
+    if I < 10 then begin
+      TmpPlayer.CellX := 0;
+      TmpPlayer.CellY := I;
+    end
+    else if I > 10 then begin
+      TmpPlayer.CellX := 17;
+      TmpPlayer.CellY := I-11;
+    end;
+
+    if TmpPlayer.HasTrait (TRAIT_GOALKEEPER) then
+      FinalTexture := FTextureGK
+      else FinalTexture:= FTexture0;
+
+    Players[I] :=  TPlayer.Create ( Self, Viewport3D1,
+                                    BaseModel, FinalTexture,
+                                    Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.X,
+                                    Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y,
+                                    TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].MatchesPlayed, '', ABasePlayer.Surname , ABasePlayer.DefaultStat , ABasePlayer.Traits );
+
+    Players[I].FGridIndex := Grid[2].FGridIndex;
+    Players[I].CellX := TmpPlayer.CellX;
+    Players[I].CellY := TmpPlayer.CellY;
+    TmpPlayer.Free; // libero il player temporaneo (quello senza FModel)
+
   end;
-
 
 
 end;
