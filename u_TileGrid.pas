@@ -35,6 +35,8 @@ type
       X, Y: Single; RayPos, RayDir: TVector3D);
     procedure LocalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
       X, Y: Single; RayPos, RayDir: TVector3D);
+    procedure LocalMouseMove(Sender: TObject; Shift: TShiftState;
+      X, Y: Single; RayPos, RayDir: TVector3D);
     procedure InitializeGrid(AOwner: TComponent; Cols, Rows: Integer;
       const TextureFiles: TStringArray2D; SharedMaterial: TTextureMaterialSource);
     procedure CreateHighlightMaterialFromBitmap(AOwner: TComponent);
@@ -65,6 +67,7 @@ type
     procedure HighlightCell(X, Y: Integer);
     procedure ClearHighlights;
     procedure HighlightFormationsCols;
+    procedure HighlightAllCells;
   end;
 
 function CreateSoccerFieldBitmap(TileWidth, TileHeight: Integer;
@@ -257,6 +260,7 @@ begin
 
       FTiles[X, Y].FPlane.OnMouseDown := LocalMouseDown;
       FTiles[X, Y].FPlane.OnMouseUp := LocalMouseUp;
+      FTiles[X, Y].FPlane.OnMouseMove := LocalMouseMove;
       FTiles[X, Y].FPlane.HitTest := True;
       FTiles[X, Y].GridIndex := FGridIndex;
       FTiles[X, Y].FPlane.Tag := FGridIndex;
@@ -302,6 +306,21 @@ end;
 procedure TTileGrid.LocalMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
   X, Y: Single; RayPos, RayDir: TVector3D);
 begin
+end;
+
+procedure TTileGrid.LocalMouseMove(Sender: TObject; Shift: TShiftState;
+      X, Y: Single; RayPos, RayDir: TVector3D);
+var
+  Cells: TArray<string>;
+  Col, Row: Integer;
+  Plane: TPlane;
+begin
+  Plane := TPlane(Sender);
+  Cells := Plane.TagString.Split(['/'], TStringSplitOptions.ExcludeEmpty);
+  Col := StrToInt(Cells[0]);
+  Row := StrToInt(Cells[1]);
+  Form1.TileMouseMove(Sender, Col, Row);
+
 end;
 
 procedure TTileGrid.SetBasePosition(BaseX, BaseY: Single);
@@ -404,6 +423,14 @@ begin
   for i := Low(FormationCols) to High(FormationCols) do
     for y := 0 to FRows - 1 do
       HighlightCell(FormationCols[i], y);
+end;
+procedure TTileGrid.HighlightAllCells;
+var
+  y, x: Integer;
+begin
+    for x := 0 to FCols - 1 do
+      for y := 0 to FRows - 1 do
+        HighlightCell(x, y);
 end;
 
 end.

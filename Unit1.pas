@@ -46,6 +46,7 @@ type
     { Public declarations }
     procedure SetupCameraTopView;
     procedure TileMouseDown(Sender:Tobject; Button: TMouseButton; CellX,CellY: integer);
+    procedure TileMouseMove(Sender: TObject; CellX,CellY: integer);
     function GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayer;
 
     procedure CreatePlayers;
@@ -171,19 +172,30 @@ begin
     if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
       SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
       if SelectedPlayer = nil then exit;
+      PlayerStatsPanel.Tag := SelectedPlayer.FGuid;
+      PlayerStatsPanel.BuildFromPlayer(StatNames, SelectedPlayer);
+      PlayerStatsPanel.Visible := True;
+      PlayerStatsPanel.BringToFront ;
 
       StartTilePos := Point ( CellX, CellY );
       StartPoint3DPos :=  SelectedPlayer.FPlayerModel.FModel.Position.Point;
       MouseStatus := Ms_Waiting_For_Destination_Cell;
-      if SelectedPlayer.HasTrait (TRAIT_GOALKEEPER) then
-        Grid[2].HighlightCell(0,5)
-      else Grid[2].HighlightFormationsCols;
+      if SelectedPlayer.HasTrait (TRAIT_GOALKEEPER) then begin
+        Grid[2].HighlightCell(0,5);
+        Grid[0].HighlightAllcells;
+        Grid[1].HighlightAllcells;
+      end
+      else begin
+        Grid[2].HighlightFormationsCols;
+        Grid[0].HighlightAllcells;
+        Grid[1].HighlightAllcells;
+      end;
 
     end
     else if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_Waiting_For_Destination_Cell) then begin
       if SelectedPlayer <> nil then begin
       // FIndex indica su quale grid abbiamo cliccato. CellX e CellY  la cella su cui abbiamo cliccato.
-        if not CheckFormationPosition ( SelectedPlayer, CellX, CellY ) then goto f1;
+        if (not CheckFormationPosition ( SelectedPlayer, CellX, CellY )) and (TPlane(Sender).Tag =2 ) then goto f1;
           // Cerca un TPlayerModel sopra al Tile
           // se lo trova lo mette al posto di selectedPlayer
           aPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY );
@@ -197,22 +209,25 @@ begin
           SelectedPlayer.SetGridPosition( TPlane(Sender).Tag, CellX, CellY );
           SelectedPlayer.FPlayerModel.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z);
   f1:
+          //PlayerStatsPanel.Visible := false;
           SelectedPlayer := nil;
           MouseStatus := ms_None;
           Grid[2].ClearHighLights;
+          Grid[0].ClearHighlights;
+          Grid[1].ClearHighlights;
 
       end;
     end
-    else if (Button = TMouseButton.mbRight) and ( MouseStatus= Ms_None) then begin
-      SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
-      if SelectedPlayer = nil then exit;
-      PlayerStatsPanel.BuildFromPlayer(StatNames, SelectedPlayer);
-      PlayerStatsPanel.Visible := True;
-      PlayerStatsPanel.BringToFront ;
+    else if (Button = TMouseButton.mbRight)  then begin //and ( MouseStatus= Ms_None)
+      goto f1;
     end;
 
   end;
   //  ShowMessage(Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]));
+end;
+procedure TForm1.TileMouseMove(Sender: TObject; CellX,CellY: integer);
+begin
+//  SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
 end;
 
 procedure TForm1.InitMenu;
@@ -285,9 +300,6 @@ begin
   PlayerStatsPanel.Parent := Form1;
   PlayerStatsPanel.Visible := False;
 
-  MenuLayout.Visible := False;
-  // Qui puoi inizializzare la griglia o altri oggetti 3D
-  Viewport3D1.Visible := True;
 
 // creo bitmap dinamica
 // 1️⃣ Creo bitmap dinamica del campo
@@ -340,9 +352,14 @@ begin
 
   Form1.WindowState := TWindowState.wsMaximized;
   GameScreen := gsFormation;
+  MenuLayout.Visible := False;
+  // Qui puoi inizializzare la griglia o altri oggetti 3D
+  Viewport3D1.Visible := True;
+
   // Camera
   SetupCameraTopView;
   //SetupFieldLights;
+
 
 end;
 procedure TForm1.BtnNewGameClick(Sender: TObject);
@@ -431,6 +448,7 @@ begin
                                     Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y,
                                     TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].MatchesPlayed, '', ABasePlayer.Surname , ABasePlayer.DefaultStat , ABasePlayer.Traits );
 
+    FillRandomXp ( Players[I].FxpStats );
     Players[I].FGridIndex := Grid[2].FGridIndex;
     Players[I].CellX := TmpPlayer.CellX;
     Players[I].CellY := TmpPlayer.CellY;

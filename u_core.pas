@@ -24,10 +24,11 @@ type
     FDefaultCellY: Integer;
     FCellX: Integer;
     FCellY: Integer;
-    FSurname: string;
+    FName, FSurname: string;
     FStamina: SmallInt;
     FDefaultStats: ArrayStats;
     FStats: ArrayStats;
+    FxpStats: ArrayStats;
     FTraits: ArrayTraits;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel : TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
