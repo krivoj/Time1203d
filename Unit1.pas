@@ -6,14 +6,13 @@ e vengono aggiornate alla fine di ogni stagione  in quanto season_match è 38 ma
  { TODO : partire con il Statpanel visible e selzionato sul primo giocatore (il GK) }
  { TODO : settare solo 4  viste camere }
  { TODO : le grid reserve vanno il alto e in basso. }
- { TODO : speed aqua =4 ec... non valori da 1 a 20 }
- { TODO : switch to traits e button seell, dismiss. }
+ { TODO : switch to traits e button seell, dismiss. inoltre qui i traits attivi che si illuminano durante la skill }
 interface
 
 uses
   System.SysUtils, System.Classes, System.UITypes, System.Types, System.Variants,
   FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,u_TileGrid,u_FieldLines,
-  FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D,
+  FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D, FMX.SpinBox,
   FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer, u_SqlcreateSave, math,
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
@@ -27,25 +26,23 @@ type
   TForm1 = class(TForm)
     Viewport3D1: TViewport3D;
     Camera1: TCamera;
-    Layout1: TLayout;
+    LayoutCam: TLayout;
     procedure FormCreate(Sender: TObject);
     procedure Viewport3D1MouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; var Handled: Boolean);
     procedure FormResize(Sender: TObject);
     procedure Viewport3D1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Single);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     MenuLayout: TLayout;
     BtnNewGame, BtnLoadGame, BtnExit: TSpeedButton;
     procedure InitMenu;
     procedure InitGame;
-    procedure RotateCameraLeft(Sender: TObject);
-    procedure RotateCameraRight(Sender: TObject);
-    procedure RotateCameraUp(Sender: TObject);
-    procedure RotateCameraDown(Sender: TObject);
-    procedure MoveCameraForward(Sender: TObject);
-    procedure MoveCameraBackward(Sender: TObject);
+    procedure SetupLayout;
+    procedure SpinChange(Sender: TObject);
+    procedure SyncSpinsWithCamera;
     procedure BtnNewGameClick(Sender: TObject);
     procedure BtnLoadGameClick(Sender: TObject);
     procedure BtnExitClick(Sender: TObject);  public
@@ -58,7 +55,6 @@ type
     procedure CreatePlayers;
     procedure CreateGround;
   public
-    procedure InitCameraMoveControls;
     end;
 
 var
@@ -77,12 +73,15 @@ var
   Grid: array [0..2] of TTileGrid;
   MouseStatus : TMouseStatus;
   GameScreen : TGameScreen;
+  FormReady: boolean;
+    CamNames: array[0..5] of string = ('Pos X', 'Pos Y', 'Pos Z', 'Rot X', 'Rot Y', 'Rot Z');
 implementation
 
 {$R *.fmx}
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+  FormReady := false;
   DirAssets := ExtractFilePath(ParamStr(0)) + 'Assets\';
   DirSaves := GetLocalAppDataPath;
   ForceDirectories(DirSaves + '\Time120\');
@@ -92,7 +91,7 @@ begin
   Viewport3D1.Visible := False;
   // Inizializza menu overlay
   InitMenu;
-
+  SetupLayout;
 end;
 
 procedure TForm1.Viewport3D1MouseDown(Sender: TObject; Button: TMouseButton;
@@ -119,54 +118,33 @@ begin
     Camera1.Position.Z := 100;
 end;
 procedure TForm1.FormResize(Sender: TObject);
-var
-  AspectRatio: Single;
-  GridWidth, GridHeight: Single;
-  MaxDim: Single;
 begin
+  if not FormReady then exit;
   if not viewport3d1.Visible then exit;
+  SetupCameraTopView;
+end;
 
-  // dimensioni della griglia
-  GridWidth := Board.FCols * Board.FTileSizeX;
-  GridHeight := Board.FRows * Board.FTileSizeY;
-
-  // rapporto viewport
-  AspectRatio := Viewport3D1.Width / Viewport3D1.Height;
-
-  // calcola la dimensione maggiore tra width e height per Z
-  if GridWidth/AspectRatio > GridHeight then
-    MaxDim := GridWidth/AspectRatio
-  else
-    MaxDim := GridHeight;
-
-  Camera1.Position.Z := MaxDim;  // alza o abbassa la camera per adattare tutta la griglia
+procedure TForm1.FormShow(Sender: TObject);
+begin
+  FormReady := True;
+  FormResize(Self); // centra il layout
 end;
 
 procedure TForm1.SetupCameraTopView;
-var
-  TileLeft, TileRight: TModelTile;
-  CenterX, CenterY: Single;
 begin
   Camera1.Parent := Viewport3D1;
 
-// Celle centrali
-  TileLeft  := Board.FTiles[8, 5];
-  TileRight := Board.FTiles[9, 5];
-
-  // Calcolo posizione centrale tra le due celle
-  //CenterY := (TileLeft.FPlane.Position.Y + TileRight.FPlane.Position.Y) / 2;
-  //CenterX := TileLeft.FPlane.Position.X; // riga 5 è già quella giusta
-  CenterX := (TileLeft.FPlane.Position.X + TileRight.FPlane.Position.X) / 2;
-  CenterY := TileLeft.FPlane.Position.Y; // riga 5 è già quella giusta
-
   // Posizionamento camera
   Camera1.Target := nil;  // Target NIL se usiamo RotationAngle
-  Camera1.Position.X := CenterX;
-  Camera1.Position.Y := CenterY-3;
-  Camera1.Position.Z := 16.7;
+  Camera1.Position.X := 9;
+  Camera1.Position.Y := 0;
+  Camera1.Position.Z := 15;//16.7;
 
-  Camera1.RotationAngle.X := -170;  // Vista dall'alto  180 per centrare dall'alto
- // Camera1.RotationAngle.Z := -90;  // Campo ruotato orizzontalmenteend;
+//  Camera1.RotationAngle.X := -170;  // Vista dall'alto  180 per centrare dall'alto , 170 inclinato
+  Camera1.RotationAngle.X := 201;
+  Camera1.RotationAngle.Y := 0;
+  Camera1.RotationAngle.Z := 0;
+  SyncSpinsWithCamera;
 end;
 procedure TForm1.TileMouseDown(Sender: TObject; Button: TMouseButton; CellX,CellY: integer);
 var
@@ -322,7 +300,6 @@ begin
 
   // 4️⃣ Libero bitmap manualmente (materiale già l’ha copiata)
   FieldBitmap.Free;
-  InitCameraMoveControls;
 
   Board.SetBasePosition(-9, -5.5); // esempio per centrare 18x11 celle di 1 unit
 
@@ -397,7 +374,6 @@ var
   BaseModel: TModel3D;
   AGridCell: TGridCell;
   S: ArrayStats;
-  T: ArrayTraits;
   ABasePlayer: PlayerTemplate;
   TmpPlayer: TPlayer;
 begin
@@ -479,108 +455,7 @@ begin
   TTextureMaterialSource(Ground.MaterialSource).Texture.LoadFromFile(DirAssets + 'panchina.bmp');
   Ground.HitTest := False;
 end;
-procedure TForm1.InitCameraMoveControls;
-var
-  LayoutCam: TLayout;
-  BtnLeft, BtnRight, BtnUp, BtnDown, BtnForward, BtnBackward: TSpeedButton;
-begin
-  // Layout per i pulsanti della camera
-  LayoutCam := TLayout.Create(Self);
-  LayoutCam.Parent := Self;
-  LayoutCam.Align := TAlignLayout.Bottom;
-  LayoutCam.Height := 80;
 
-  // --- Ruota a sinistra (Z -5°)
-  BtnLeft := TSpeedButton.Create(LayoutCam);
-  BtnLeft.Parent := LayoutCam;
-  BtnLeft.Text := '<';
-  BtnLeft.Position.X := 10;
-  BtnLeft.Position.Y := 10;
-  BtnLeft.Width := 60;
-  BtnLeft.Height := 40;
-  BtnLeft.OnClick := RotateCameraLeft;
-
-  // --- Ruota a destra (Z +5°)
-  BtnRight := TSpeedButton.Create(LayoutCam);
-  BtnRight.Parent := LayoutCam;
-  BtnRight.Text := '>';
-  BtnRight.Position.X := 80;
-  BtnRight.Position.Y := 10;
-  BtnRight.Width := 60;
-  BtnRight.Height := 40;
-  BtnRight.OnClick := RotateCameraRight;
-
-  // --- Ruota su (X -5°)
-  BtnUp := TSpeedButton.Create(LayoutCam);
-  BtnUp.Parent := LayoutCam;
-  BtnUp.Text := '↑';
-  BtnUp.Position.X := 150;
-  BtnUp.Position.Y := 10;
-  BtnUp.Width := 60;
-  BtnUp.Height := 40;
-  BtnUp.OnClick := RotateCameraUp;
-
-  // --- Ruota giù (X +5°)
-  BtnDown := TSpeedButton.Create(LayoutCam);
-  BtnDown.Parent := LayoutCam;
-  BtnDown.Text := '↓';
-  BtnDown.Position.X := 220;
-  BtnDown.Position.Y := 10;
-  BtnDown.Width := 60;
-  BtnDown.Height := 40;
-  BtnDown.OnClick := RotateCameraDown;
-
-  // --- Sposta in avanti (X positivo)
-  BtnForward := TSpeedButton.Create(LayoutCam);
-  BtnForward.Parent := LayoutCam;
-  BtnForward.Text := '>>';
-  BtnForward.Position.X := 290;
-  BtnForward.Position.Y := 10;
-  BtnForward.Width := 60;
-  BtnForward.Height := 40;
-  BtnForward.OnClick := MoveCameraForward;
-
-  // --- Sposta indietro (X negativo)
-  BtnBackward := TSpeedButton.Create(LayoutCam);
-  BtnBackward.Parent := LayoutCam;
-  BtnBackward.Text := '<<';
-  BtnBackward.Position.X := 360;
-  BtnBackward.Position.Y := 10;
-  BtnBackward.Width := 60;
-  BtnBackward.Height := 40;
-  BtnBackward.OnClick := MoveCameraBackward;
-end;
-
-procedure TForm1.RotateCameraLeft(Sender: TObject);
-begin
-  Camera1.RotationAngle.Z := Camera1.RotationAngle.Z - 5;
-end;
-
-procedure TForm1.RotateCameraRight(Sender: TObject);
-begin
-  Camera1.RotationAngle.Z := Camera1.RotationAngle.Z + 5;
-end;
-
-procedure TForm1.RotateCameraUp(Sender: TObject);
-begin
-  Camera1.RotationAngle.X := Camera1.RotationAngle.X - 5;
-end;
-
-procedure TForm1.RotateCameraDown(Sender: TObject);
-begin
-  Camera1.RotationAngle.X := Camera1.RotationAngle.X + 5;
-end;
-procedure TForm1.MoveCameraForward(Sender: TObject);
-begin
-  Camera1.Position.X := Camera1.Position.X + Board.FTileSizeX;
-  // sposta di 1 cella in avanti
-end;
-
-procedure TForm1.MoveCameraBackward(Sender: TObject);
-begin
-  Camera1.Position.X := Camera1.Position.X - Board.FTileSizeX;
-  // sposta di 1 cella indietro
-end;
 
 function TForm1.GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayer;
 var
@@ -595,29 +470,77 @@ begin
   end;
 
 end;
+procedure TForm1.SetupLayout;
+var
+  Lbl: TLabel;
+  Spin: TSpinBox;
 
+  I: Integer;
+begin
+  // Layout
+  LayoutCam.Align := TAlignLayout.None;
+  LayoutCam.Width := 200;
+  LayoutCam.Height := 220;
+  LayoutCam.Anchors := [];
 
+  // Pulisce tutto
+  LayoutCam.DeleteChildren;
+
+  for I := 0 to 5 do
+  begin
+    Lbl := TLabel.Create(LayoutCam);
+    Lbl.Parent := LayoutCam;
+    Lbl.Text := CamNames[I];
+    Lbl.Position.X := 10;
+    Lbl.Position.Y := I * 35 + 10;
+
+    Spin := TSpinBox.Create(LayoutCam);
+    Spin.Parent := LayoutCam;
+    Spin.Min := -1000;
+    Spin.Max := 1000;
+    Spin.Value := 0;
+    Spin.Tag := I;
+    Spin.Position.X := 70;
+    Spin.Position.Y := I * 35 + 5;
+    Spin.Width := 100;
+    Spin.OnChange := SpinChange;
+  end;
+
+  LayoutCam.Visible := True;
+end;
+procedure TForm1.SpinChange(Sender: TObject);
+var
+  Spin: TSpinBox;
+begin
+  if not FormReady then Exit;
+
+  Spin := Sender as TSpinBox;
+  case Spin.Tag of
+    0: Camera1.Position.X := Spin.Value;
+    1: Camera1.Position.Y := Spin.Value;
+    2: Camera1.Position.Z := Spin.Value;
+    3: Camera1.RotationAngle.X := Spin.Value;
+    4: Camera1.RotationAngle.Y := Spin.Value;
+    5: Camera1.RotationAngle.Z := Spin.Value;
+  end;
+end;
+procedure TForm1.SyncSpinsWithCamera;
+var
+  i: Integer;
+begin
+  for i := 0 to LayoutCam.ChildrenCount - 1 do
+  begin
+    if LayoutCam.Children[i] is TSpinBox then
+      case TSpinBox(LayoutCam.Children[i]).Tag of
+        0: TSpinBox(LayoutCam.Children[i]).Value := Camera1.Position.X;
+        1: TSpinBox(LayoutCam.Children[i]).Value := Camera1.Position.Y;
+        2: TSpinBox(LayoutCam.Children[i]).Value := Camera1.Position.Z;
+        3: TSpinBox(LayoutCam.Children[i]).Value := Camera1.RotationAngle.X;
+        4: TSpinBox(LayoutCam.Children[i]).Value := Camera1.RotationAngle.Y;
+        5: TSpinBox(LayoutCam.Children[i]).Value := Camera1.RotationAngle.Z;
+      end;
+  end;
+end;
 end.
 
-{Hai detto:
-
-
-procedure TForm1.FormCreate(Sender: TObject);
-begin
-
-PlayerStatsPanel := TPlayerStatsPanel.Create(Self, DirBmp);
-PlayerStatsPanel.Parent := LayoutMain;  // o dove lo vuoi mettere
-PlayerStatsPanel.Visible := False;
-end;
-
-procedure TForm1.ShowPlayerStats(Player: TPlayer);
-begin
-  PlayerStats.BuildFromPlayer(Player);
-  PlayerStats.Visible := True;
-end;
-
-procedure TForm1.HidePlayerStats;
-begin
-  PlayerStats.Visible := False;
-end;}
 

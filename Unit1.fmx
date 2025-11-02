@@ -5,11 +5,13 @@ object Form1: TForm1
   ClientHeight = 714
   ClientWidth = 1271
   Position = ScreenCenter
+  WindowState = wsMaximized
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   OnResize = FormResize
+  OnShow = FormShow
   DesignerMasterStyle = 0
   object Viewport3D1: TViewport3D
     Align = Client
@@ -27,10 +29,10 @@ object Form1: TForm1
       Height = 1.000000000000000000
       Depth = 1.000000000000000000
     end
-    object Layout1: TLayout
-      Align = Bottom
-      Position.Y = 664.000000000000000000
-      Size.Width = 1271.000000000000000000
+    object LayoutCam: TLayout
+      Position.X = 512.000000000000000000
+      Position.Y = 336.000000000000000000
+      Size.Width = 300.000000000000000000
       Size.Height = 50.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0

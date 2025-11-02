@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.UITypes, System.Types, Math,
-  u_PlayerTemplates, u_Types, u_core,
+  u_PlayerTemplates, u_Types, u_core, u_traits,
   FMX.Types, FMX.Controls, FMX.Objects, FMX.Graphics, FMX.Layouts, FMX.StdCtrls;
 
 type
@@ -80,7 +80,7 @@ begin
 
   // CREO TUTTE LE RIGHE con nomi fissi
   SetLength(FRows, Length(Names));
-  for i := Low(Names) to High(Names) do
+  for i := high(Names) Downto Low(Names) do
     AddStatRow(Names[i], i);
 end;
 
@@ -197,14 +197,27 @@ begin
     ValLbl.Text := APlayer.FStats[i].ToString;
 
     // colore rettangolo valore
-    if APlayer.FStats[i] > 17 then
-      ValueRect.Fill.Color := TAlphaColorRec.Aqua
-    else if APlayer.FStats[i] > 12 then
-      ValueRect.Fill.Color := TAlphaColorRec.Lightgreen
-    else if APlayer.FStats[i] > 9 then
-      ValueRect.Fill.Color := TAlphaColorRec.Khaki
-    else
-      ValueRect.Fill.Color := TAlphaColorRec.Indianred;
+    if i <> Speed Then begin
+      if APlayer.FStats[i] > 18 then
+        ValueRect.Fill.Color := TAlphaColorRec.Aqua
+      else if APlayer.FStats[i] > 12 then
+        ValueRect.Fill.Color := TAlphaColorRec.Lightgreen
+      else if APlayer.FStats[i] > 9 then
+        ValueRect.Fill.Color := TAlphaColorRec.Khaki
+      else
+        ValueRect.Fill.Color := TAlphaColorRec.Indianred;
+    end
+    else begin
+      if APlayer.FStats[i] > 3 then
+        ValueRect.Fill.Color := TAlphaColorRec.Aqua
+      else if APlayer.FStats[i] > 2 then
+        ValueRect.Fill.Color := TAlphaColorRec.Lightgreen
+      else if APlayer.FStats[i] > 1 then
+        ValueRect.Fill.Color := TAlphaColorRec.Khaki
+      else
+        ValueRect.Fill.Color := TAlphaColorRec.Indianred;
+
+    end;
 
     // centrare verticalmente la barra rispetto al rettangolo del valore
     BarBg.Position.Y := (Row.Height - BarBg.Height)/2;
