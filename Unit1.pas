@@ -12,7 +12,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FMX.Types3D,FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,u_SystemUtils,System.IOUtils,
-  FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Traits;
+  FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Traits, u_PlayerStatsPanel;
 
 Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
 Type TGameScreen = (gsFormation, gsMatch, gsSubs, gsTactics, gsMarket, gsStandings );
@@ -57,6 +57,7 @@ type
 var
 
   Form1: TForm1;
+  PlayerStatsPanel: TPlayerStatsPanel;
   BtnExit,BtnNewGame,BtnLoadGame: TButton;
   Board, Reserve0, Reserve1: TTileGrid;
   SelectedPlayer: TPlayer;
@@ -69,7 +70,6 @@ var
   Grid: array [0..2] of TTileGrid;
   MouseStatus : TMouseStatus;
   GameScreen : TGameScreen;
-  DirAssets, DirSaves:string;
 implementation
 
 {$R *.fmx}
@@ -168,7 +168,6 @@ var
 begin
   if (GameScreen = gsFormation) then begin
 
-
     if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
       SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
       if SelectedPlayer = nil then exit;
@@ -185,7 +184,7 @@ begin
       if SelectedPlayer <> nil then begin
       // FIndex indica su quale grid abbiamo cliccato. CellX e CellY  la cella su cui abbiamo cliccato.
         if not CheckFormationPosition ( SelectedPlayer, CellX, CellY ) then goto f1;
-          // Cerca un TPlayerModel sopra
+          // Cerca un TPlayerModel sopra al Tile
           // se lo trova lo mette al posto di selectedPlayer
           aPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY );
           if aPlayer <> nil then begin // se c'è un player lo metto al posto di SelectedPlayer
@@ -203,7 +202,15 @@ begin
           Grid[2].ClearHighLights;
 
       end;
+    end
+    else if (Button = TMouseButton.mbRight) and ( MouseStatus= Ms_None) then begin
+      SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
+      if SelectedPlayer = nil then exit;
+      PlayerStatsPanel.BuildFromPlayer(StatNames, SelectedPlayer);
+      PlayerStatsPanel.Visible := True;
+      PlayerStatsPanel.BringToFront ;
     end;
+
   end;
   //  ShowMessage(Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]));
 end;
@@ -274,6 +281,9 @@ var
   FieldBitmap: TBitmap;
 begin
   // Nascondi menu
+  PlayerStatsPanel := TPlayerStatsPanel.Create(Viewport3d1, StatNames);
+  PlayerStatsPanel.Parent := Form1;
+  PlayerStatsPanel.Visible := False;
 
   MenuLayout.Visible := False;
   // Qui puoi inizializzare la griglia o altri oggetti 3D

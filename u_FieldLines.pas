@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Math, System.Math.Vectors,
   FMX.Types3D, FMX.Objects3D, FMX.MaterialSources, FMX.Controls3D, FMX.Viewport3D, FMX.Graphics, System.UIConsts,
-  u_TileGrid;
+  u_TileGrid,u_Types;
 
 type
   TFieldDrawer = class
@@ -399,7 +399,7 @@ var
   NetMaterial,PoleMaterial: TTextureMaterialSource;
   ColorBmp, AlphaBmp, NetBitmap,PoleBitmap: TBitmap;
 begin
-  GoalFile := 'objSoccergoal.obj';
+  GoalFile := DirAssets + 'objSoccergoal.obj';
   if not FileExists(GoalFile) then
     raise Exception.Create('File Soccergoal.obj non trovato: ' + GoalFile);
 
@@ -413,8 +413,8 @@ begin
   // --- Materiale rete con bitmap + alpha ---
   ColorBmp := TBitmap.Create;
   AlphaBmp := TBitmap.Create;
-  ColorBmp.LoadFromFile('Net.001_color.png');
-  AlphaBmp.LoadFromFile('Net.001_alpha.png');
+  ColorBmp.LoadFromFile(DirAssets +'Net.001_color.png');
+  AlphaBmp.LoadFromFile(DirAssets +'Net.001_alpha.png');
   NetBitmap := TBitmap.CreateFromBitmapAndMask(ColorBmp, AlphaBmp);
 
   NetMaterial := TTextureMaterialSource.Create(nil);

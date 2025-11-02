@@ -15,9 +15,8 @@ type
     procedure AddStatRow(const StatName: string; Value: Integer; Index: Integer);
     procedure ValueRectClick(Sender: TObject);
   public
-    constructor Create(AOwner: TComponent); reintroduce;
-    procedure BuildFromArray(const Names: ArrayStatNames; const Values: ArrayStats);
-    procedure BuildFromPlayer(const Player: TPlayer);
+    constructor Create(AOwner: TComponent; const Names: ArrayStatNames );
+    procedure BuildFromPlayer(const Names: ArrayStatNames; const APlayer: TPlayer);
     procedure ClearStats;
     destructor Destroy; override;
   end;
@@ -25,24 +24,15 @@ type
 implementation
 
 {---------------------------------------------}
-constructor TPlayerStatsPanel.Create(AOwner: TComponent);
+
+constructor TPlayerStatsPanel.Create(AOwner: TComponent; const Names: ArrayStatNames);
 begin
   inherited Create(AOwner);
   Align := TAlignLayout.Client;
-end;
-
-{---------------------------------------------}
-procedure TPlayerStatsPanel.BuildFromArray(const Names: ArrayStatNames; const Values: ArrayStats);
-var
-  i: Integer;
-begin
   ClearStats;
   SetLength(FBarRects, Length(Names));
   SetLength(FValueRects, Length(Names));
   SetLength(FValueLabels, Length(Names));
-
-  for i := Low(Names) to High(Names) do
-    AddStatRow(Names[i], Values[i], i);
 end;
 
 {---------------------------------------------}
@@ -136,9 +126,14 @@ begin
 end;
 
 {---------------------------------------------}
-procedure TPlayerStatsPanel.BuildFromPlayer(const Player: TPlayer);
+procedure TPlayerStatsPanel.BuildFromPlayer(const Names: ArrayStatNames; const APlayer: TPlayer);
+var
+  i:integer;
 begin
   // da implementare: leggere valori dal Player
+    for i := Low(Names) to High(Names) do
+      AddStatRow(Names[i], APlayer.FStats[i], i);
+
 end;
 
 {---------------------------------------------}
