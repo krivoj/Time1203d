@@ -2,6 +2,12 @@
  { TODO :
 Al posto di MatchesPlayed e matchesLeft usare SeasonPlayed e SeasonLeft o Remain
 e vengono aggiornate alla fine di ogni stagione  in quanto season_match è 38 ma anche 30. }
+ { TODO : createplayers all'inizio deve mettere nella grid 0 e 1 oppure quando leggerà da DB nelle grid settate sul db }
+ { TODO : partire con il Statpanel visible e selzionato sul primo giocatore (il GK) }
+ { TODO : settare solo 4  viste camere }
+ { TODO : le grid reserve vanno il alto e in basso. }
+ { TODO : speed aqua =4 ec... non valori da 1 a 20 }
+ { TODO : switch to traits e button seell, dismiss. }
 interface
 
 uses
