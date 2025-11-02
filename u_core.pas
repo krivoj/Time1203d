@@ -2,7 +2,7 @@ unit u_Core;
 
 interface
 uses
-u_PlayerModel, FMX.Viewport3D, system.Classes,FMX.MaterialSources, u_Types,FMX.Objects3D;
+u_PlayerModel, FMX.Viewport3D, system.Classes,FMX.MaterialSources, u_Types,FMX.Objects3D, u_Traits;
 
 type
   TPlayer = class
@@ -15,6 +15,9 @@ type
     procedure SetSurname(const Value: string);
   public
     FGuid: Integer;
+    FTeam: Integer;
+    FGuidTeam: Integer;
+    FMatchesPlayed: Integer;
     FPlayerModel: TPlayerModel;
     FGridIndex: Integer;
     FDefaultCellX: Integer;
@@ -23,12 +26,12 @@ type
     FCellY: Integer;
     FSurname: string;
     FStamina: SmallInt;
-    FDefaultStats: pByte;
-    FStats: pByte;
+    FDefaultStats: ArrayStats;
+    FStats: ArrayStats;
     FTraits: ArrayTraits;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel : TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
-                       const AGuid, aTeam, aGuidTeam, aMatchesPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
+                       const AGuid, ATeam, AGuidTeam, AMatchesPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
                        );
 
     destructor Destroy; override;
@@ -53,10 +56,17 @@ var
   i: integer;
 begin
   Result := false;
-  for I := Low(FormationCols) to High(FormationCols) do begin
-    if FormationCols[i] = CellX then begin
-      Result := True;
-      exit;
+  If SelectedPlayer.HasTrait( TRAIT_GOALKEEPER ) then begin
+    if (CellX = 0)  and (CellY = 5) then begin
+      Result:= True;
+    end;
+  end
+  else begin
+    for I := Low(FormationCols) to High(FormationCols) do begin
+      if FormationCols[i] = CellX then begin
+        Result := True;
+        exit;
+      end;
     end;
   end;
 
@@ -70,11 +80,19 @@ begin
 end;
 constructor TPlayer.Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel: TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
-                       const AGuid, aTeam, aGuidTeam, aMatchesPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
+                       const AGuid, ATeam, AGuidTeam, AMatchesPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
                        );
 begin
   if BaseModel <> nil then
     FPlayerModel := TPlayerModel.Create(AOwner,AViewPort,BaseModel,ATexture,InitX,InitY);
+    FGuid:= AGuid;
+    FTeam := ATeam;
+    FGuidTeam:= AGuidTeam;
+    FMatchesPlayed :=AMatchesPlayed;
+    FSurname:= ASurname;
+    FDefaultStats := rStats;
+    FStats := rStats;
+    FTraits := rTraits;
 
 end;
 

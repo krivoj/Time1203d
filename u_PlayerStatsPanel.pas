@@ -3,23 +3,21 @@ unit u_PlayerStatsPanel;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.UITypes, System.Types,
+  System.SysUtils, System.Classes, System.UITypes, System.Types, u_PlayerTemplates,u_Types,u_core,
   FMX.Types, FMX.Controls, FMX.Objects, FMX.Graphics, FMX.Layouts, FMX.StdCtrls;
 
 type
   TPlayerStatsPanel = class(TLayout)
   private
-    FArrowImgs: array[0..4] of TBitmap;
     FBarRects: array of TRectangle;
     FValueRects: array of TRectangle;
     FValueLabels: array of TLabel;
     procedure AddStatRow(const StatName: string; Value: Integer; Index: Integer);
-    procedure ArrowClick(Sender: TObject);
+    procedure ValueRectClick(Sender: TObject);
   public
-    constructor Create(AOwner: TComponent; const DirBmp: string); reintroduce;
-    procedure LoadArrowBitmaps(const Folder: string);
-    procedure BuildFromArray(const Names: array of string; const Values: array of Integer);
-    procedure BuildFromPlayer(const Player: TObject);
+    constructor Create(AOwner: TComponent); reintroduce;
+    procedure BuildFromArray(const Names: ArrayStatNames; const Values: ArrayStats);
+    procedure BuildFromPlayer(const Player: TPlayer);
     procedure ClearStats;
     destructor Destroy; override;
   end;
@@ -27,25 +25,14 @@ type
 implementation
 
 {---------------------------------------------}
-constructor TPlayerStatsPanel.Create(AOwner: TComponent; const DirBmp: string);
+constructor TPlayerStatsPanel.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  Align := TAlignLayout.Client; // o quello che ti serve
-  LoadArrowBitmaps(DirBmp);
-end;
-procedure TPlayerStatsPanel.LoadArrowBitmaps(const Folder: string);
-var
-  i: Integer;
-begin
-  for i := 0 to 4 do
-  begin
-    FArrowImgs[i] := TBitmap.Create;
-    FArrowImgs[i].LoadFromFile(Format('%s\Arrow%d.bmp', [Folder, i + 1]));
-  end;
+  Align := TAlignLayout.Client;
 end;
 
 {---------------------------------------------}
-procedure TPlayerStatsPanel.BuildFromArray(const Names: array of string; const Values: array of Integer);
+procedure TPlayerStatsPanel.BuildFromArray(const Names: ArrayStatNames; const Values: ArrayStats);
 var
   i: Integer;
 begin
@@ -54,7 +41,7 @@ begin
   SetLength(FValueRects, Length(Names));
   SetLength(FValueLabels, Length(Names));
 
-  for i := 0 to High(Names) do
+  for i := Low(Names) to High(Names) do
     AddStatRow(Names[i], Values[i], i);
 end;
 
@@ -64,7 +51,6 @@ var
   Row: TLayout;
   BarBg, BarFill, ValueRect: TRectangle;
   Lbl, ValLbl: TLabel;
-  Img: TImage;
 begin
   Row := TLayout.Create(Self);
   Row.Parent := Self;
@@ -73,7 +59,7 @@ begin
   Row.Padding.Rect := TRectF.Create(5, 2, 5, 2);
   Row.Margins.Bottom := 2;
 
-  // nome proprietà
+  // nome statistica
   Lbl := TLabel.Create(Row);
   Lbl.Parent := Row;
   Lbl.Text := StatName;
@@ -81,17 +67,7 @@ begin
   Lbl.Width := 100;
   Lbl.TextSettings.Font.Size := 14;
 
-  // immagine freccette
-  Img := TImage.Create(Row);
-  Img.Parent := Row;
-  Img.Align := TAlignLayout.Left;
-  Img.Width := 80;
-  Img.HitTest := True;
-  Img.Tag := 0; // stato corrente (0..4)
-  Img.Bitmap.Assign(FArrowImgs[0]);
-  Img.OnClick := ArrowClick;
-
-  // barra incrementale
+  // barra sfondo
   BarBg := TRectangle.Create(Row);
   BarBg.Parent := Row;
   BarBg.Align := TAlignLayout.Client;
@@ -101,6 +77,7 @@ begin
   BarBg.XRadius := 6;
   BarBg.YRadius := 6;
 
+  // barra valore
   BarFill := TRectangle.Create(BarBg);
   BarFill.Parent := BarBg;
   BarFill.Align := TAlignLayout.Left;
@@ -111,7 +88,7 @@ begin
   BarFill.Margins.Rect := TRectF.Create(1, 1, 1, 1);
   FBarRects[Index] := BarFill;
 
-  // rettangolo valore
+  // rettangolo valore cliccabile
   ValueRect := TRectangle.Create(Row);
   ValueRect.Parent := Row;
   ValueRect.Align := TAlignLayout.Right;
@@ -119,10 +96,13 @@ begin
   ValueRect.XRadius := 6;
   ValueRect.YRadius := 6;
   ValueRect.Stroke.Kind := TBrushKind.None;
+  ValueRect.Tag := Index;
+  ValueRect.HitTest := True;
+  ValueRect.OnClick := ValueRectClick;
 
-  if Value > 70 then
+  if Value > 17 then
     ValueRect.Fill.Color := TAlphaColorRec.Lightgreen
-  else if Value > 40 then
+  else if Value > 10 then
     ValueRect.Fill.Color := TAlphaColorRec.Khaki
   else
     ValueRect.Fill.Color := TAlphaColorRec.Indianred;
@@ -138,17 +118,12 @@ begin
 end;
 
 {---------------------------------------------}
-procedure TPlayerStatsPanel.ArrowClick(Sender: TObject);
+procedure TPlayerStatsPanel.ValueRectClick(Sender: TObject);
 var
-  Img: TImage;
-  Level: Integer;
+  R: TRectangle;
 begin
-  Img := TImage(Sender);
-  Level := Img.Tag + 1;
-  if Level > 4 then
-    Level := 0; // torna a zero
-  Img.Tag := Level;
-  Img.Bitmap.Assign(FArrowImgs[Level]);
+  R := TRectangle(Sender);
+  //ShowMessage(Format('Hai cliccato il valore della stat #%d', [R.Tag]));
 end;
 
 {---------------------------------------------}
@@ -161,20 +136,14 @@ begin
 end;
 
 {---------------------------------------------}
-procedure TPlayerStatsPanel.BuildFromPlayer(const Player: TObject);
+procedure TPlayerStatsPanel.BuildFromPlayer(const Player: TPlayer);
 begin
-  // placeholder:
-  // qui puoi leggere le proprietà da TPlayer (es. Player.ShotPower, Player.Speed, ecc.)
-  // e poi chiamare BuildFromArray
+  // da implementare: leggere valori dal Player
 end;
 
 {---------------------------------------------}
 destructor TPlayerStatsPanel.Destroy;
-var
-  i: Integer;
 begin
-  for i := 0 to 4 do
-    FArrowImgs[i].Free;
   inherited;
 end;
 

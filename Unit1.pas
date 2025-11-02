@@ -15,6 +15,7 @@ uses
   FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Traits;
 
 Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
+Type TGameScreen = (gsFormation, gsMatch, gsSubs, gsTactics, gsMarket, gsStandings );
 
 type
   TForm1 = class(TForm)
@@ -67,14 +68,19 @@ var
   Ground: TPlane;
   Grid: array [0..2] of TTileGrid;
   MouseStatus : TMouseStatus;
+  GameScreen : TGameScreen;
+  DirAssets, DirSaves:string;
 implementation
 
 {$R *.fmx}
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
+  DirAssets := ExtractFilePath(ParamStr(0)) + 'Assets\';
+  DirSaves := GetLocalAppDataPath;
+  ForceDirectories(DirSaves + '\Time120\');
 
-// Viewport3D a coprire tutta la form
+  // Viewport3D a coprire tutta la form
   Viewport3D1.Align := TAlignLayout.Client;
   Viewport3D1.Visible := False;
   // Inizializza menu overlay
@@ -160,38 +166,43 @@ var
   aPlayer: TPlayer;
   label f1;
 begin
-  if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
-    SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
-    if SelectedPlayer = nil then exit;
-
-    StartTilePos := Point ( CellX, CellY );
-    StartPoint3DPos :=  SelectedPlayer.FPlayerModel.FModel.Position.Point;
-    MouseStatus := Ms_Waiting_For_Destination_Cell;
-    //if not SelectedPlayer.HasTrait[TRAIT_GOALKEEPER) then
-      Grid[2].HighlightFormationsCols;
-    //else Grid[2].HighlightCell(0,5);
-  end
-  else if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_Waiting_For_Destination_Cell) then begin
-    if SelectedPlayer <> nil then begin
-    // FIndex indica su quale grid abbiamo cliccato. CellX e CellY  la cella su cui abbiamo cliccato.
-      if not CheckFormationPosition ( SelectedPlayer, CellX, CellY ) then goto f1;
-        // Cerca un TPlayerModel sopra
-        // se lo trova lo mette al posto di selectedPlayer
-        aPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY );
-        if aPlayer <> nil then begin // se c'è un player lo metto al posto di SelectedPlayer
-          aPlayer.SetGridPosition( SelectedPlayer.FGridIndex , SelectedPlayer.CellX, SelectedPlayer.CellY );
-          aPlayer.FPlayerModel.SetPosition( SelectedPlayer.FPlayerModel.FModel.Position.X, SelectedPlayer.FPlayerModel.FModel.Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z );
-        end;
+  if (GameScreen = gsFormation) then begin
 
 
-        // Allinea la posizione di SelectedPlayer alla grid e alla cella di destinazione
-        SelectedPlayer.SetGridPosition( TPlane(Sender).Tag, CellX, CellY );
-        SelectedPlayer.FPlayerModel.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z);
-f1:
-        SelectedPlayer := nil;
-        MouseStatus := ms_None;
-        Grid[2].ClearHighLights;
+    if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
+      SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
+      if SelectedPlayer = nil then exit;
 
+      StartTilePos := Point ( CellX, CellY );
+      StartPoint3DPos :=  SelectedPlayer.FPlayerModel.FModel.Position.Point;
+      MouseStatus := Ms_Waiting_For_Destination_Cell;
+      if SelectedPlayer.HasTrait (TRAIT_GOALKEEPER) then
+        Grid[2].HighlightCell(0,5)
+      else Grid[2].HighlightFormationsCols;
+
+    end
+    else if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_Waiting_For_Destination_Cell) then begin
+      if SelectedPlayer <> nil then begin
+      // FIndex indica su quale grid abbiamo cliccato. CellX e CellY  la cella su cui abbiamo cliccato.
+        if not CheckFormationPosition ( SelectedPlayer, CellX, CellY ) then goto f1;
+          // Cerca un TPlayerModel sopra
+          // se lo trova lo mette al posto di selectedPlayer
+          aPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY );
+          if aPlayer <> nil then begin // se c'è un player lo metto al posto di SelectedPlayer
+            aPlayer.SetGridPosition( SelectedPlayer.FGridIndex , SelectedPlayer.CellX, SelectedPlayer.CellY );
+            aPlayer.FPlayerModel.SetPosition( SelectedPlayer.FPlayerModel.FModel.Position.X, SelectedPlayer.FPlayerModel.FModel.Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z );
+          end;
+
+
+          // Allinea la posizione di SelectedPlayer alla grid e alla cella di destinazione
+          SelectedPlayer.SetGridPosition( TPlane(Sender).Tag, CellX, CellY );
+          SelectedPlayer.FPlayerModel.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z);
+  f1:
+          SelectedPlayer := nil;
+          MouseStatus := ms_None;
+          Grid[2].ClearHighLights;
+
+      end;
     end;
   end;
   //  ShowMessage(Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]));
@@ -288,8 +299,8 @@ begin
   Board.SetBasePosition(-9, -5.5); // esempio per centrare 18x11 celle di 1 unit
 
   //Grid := TTileGrid.Create(Self, Viewport3D1,  18,11,  'terrain.bmp');
-  Reserve0:= TTileGrid.Create(Self, Viewport3D1, 0, 1,11, 'terrain.bmp');
-  Reserve1:= TTileGrid.Create(Self, Viewport3D1, 1, 1,11, 'terrain.bmp');
+  Reserve0:= TTileGrid.Create(Self, Viewport3D1, 0, 1,11, DirAssets + 'terrain.bmp');
+  Reserve1:= TTileGrid.Create(Self, Viewport3D1, 1, 1,11, DirAssets + 'terrain.bmp');
   Grid[0]:= Reserve0;
   Grid[0].FGridIndex := 0;
   Grid[1]:= Reserve1;
@@ -318,6 +329,7 @@ begin
   CreatePlayers;
 
   Form1.WindowState := TWindowState.wsMaximized;
+  GameScreen := gsFormation;
   // Camera
   SetupCameraTopView;
   //SetupFieldLights;
@@ -327,9 +339,7 @@ procedure TForm1.BtnNewGameClick(Sender: TObject);
 var
   DBFile: string;
 begin
-  DBFile := GetLocalAppDataPath;
-  ForceDirectories(DBFile + '\Time120\');
-  DBFile := GetLocalAppDataPath + '\Time120\Save0.sqlite';
+  DBFile := DirSaves + 'Save0.sqlite';
  // SQLiteCreateSave(DBFile);
 //  GenerateCalendar ( Conn1, Conn2, nomefile );
   InitGame;
@@ -360,7 +370,7 @@ var
 begin
 // Carica il modello base UNA SOLA VOLTA
   BaseModel := TModel3D.Create(Self);
-  BaseModel.LoadFromFile('player3.obj');
+  BaseModel.LoadFromFile(DirAssets + 'player3.obj');
   BaseModel.Visible := False; // non mostrarlo nella scena
   BaseModel.Parent := Viewport3D1;
 
@@ -368,15 +378,15 @@ begin
   // Crea materiale testurizzato
   FTextureGK := TTextureMaterialSource.Create(Self);
   FTextureGK.Parent := Viewport3D1;
-  FTextureGK.Texture.LoadFromFile('mix2.bmp'); // nel caso di ca_deer
+  FTextureGK.Texture.LoadFromFile(DirAssets + 'mix2.bmp'); // nel caso di ca_deer
 
   FTexture0 := TTextureMaterialSource.Create(Self);
   FTexture0.Parent := Viewport3D1;
-  FTexture0.Texture.LoadFromFile('mix2.bmp'); // nel caso di ca_deer
+  FTexture0.Texture.LoadFromFile(DirAssets + 'mix2.bmp'); // nel caso di ca_deer
 
   FTexture1 := TTextureMaterialSource.Create(Self);
   FTexture1.Parent := Viewport3D1;
-  FTexture1.Texture.LoadFromFile('MIX2.bmp'); // nel caso di ca_deer
+  FTexture1.Texture.LoadFromFile(DirAssets + 'MIX2.bmp'); // nel caso di ca_deer
 
 
   ModifyPixels(FTextureGK.Texture.Canvas.Bitmap, TAlphaColorRec.Red , TAlphaColorRec.Gray  , TAlphaColorRec.Blue, TAlphaColorRec.Gray ,TAlphaColorRec.Lime, TAlphaColorRec.Black );
@@ -432,7 +442,7 @@ begin
                                    (Board.FRows-1)*Board.FTileSizeY/2,
                                    -0.01); // leggermente sotto le celle
   Ground.MaterialSource := TTextureMaterialSource.Create(Self);
-  TTextureMaterialSource(Ground.MaterialSource).Texture.LoadFromFile('panchina.bmp');
+  TTextureMaterialSource(Ground.MaterialSource).Texture.LoadFromFile(DirAssets + 'panchina.bmp');
   Ground.HitTest := False;
 end;
 procedure TForm1.InitCameraMoveControls;

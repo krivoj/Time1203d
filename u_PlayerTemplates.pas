@@ -11,7 +11,7 @@ uses U_Types, U_Traits;
   end;
 var
   Templates : Array [0..21] of PlayerTemplate;
-
+  StatNames : ArrayStatNames;
 function CreateRandomPlayer(ATemplate: PlayerTemplate; Weakening: integer): PlayerTemplate;
 implementation
 
@@ -709,5 +709,25 @@ initialization;
   Templates[21].DefaultStat[ShotStopping] := 1;
   Templates[21].MatchesPlayed:= SEASON_MATCHES * 8;
 
+  StatNames[0] :='stat_speed';
+  StatNames[1] :='stat_tackling';
+  StatNames[2] :='stat_marking';
+  StatNames[3] :='stat_ballControl';
+  StatNames[4] :='stat_passing';
+  StatNames[5] :='stat_shot';
+  StatNames[6] :='stat_crossing';
+  StatNames[7] :='stat_heading';
+
+  StatNames[8] :='stat_workrate';
+  StatNames[9] :='stat_determination';
+  StatNames[10] :='stat_bravery';
+  StatNames[11] :='stat_intuition';
+
+  StatNames[12] :='stat_strenght';
+  StatNames[13] :='stat_agility';
+  StatNames[14] :='stat_technique';
+
+  StatNames[15] :='stat_rushingout';
+  StatNames[16] :='stat_shotstopping';
 
 end.
