@@ -11,31 +11,13 @@ procedure GenerateCalendar(MainConn, SaveDbConn: TFDConnection; SaveFile: string
 implementation
 
 uses
-  System.Generics.Collections, System.Math, Data.DB, FireDAC.Comp.DataSet, u_Random;
+  System.Generics.Collections, System.Math, Data.DB, FireDAC.Comp.DataSet, u_Random, u_RandomHelper;
 
 type
   TInt64List = TList<Int64>;
   TPairInt64 = TPair<Int64, Int64>;
   TRound = TList<TPairInt64>;
   TRounds = TList<TRound>;
-
-var
-  RandGen: TtdCombinedPRNG;
-
-  function RndGenerate(Upper: Integer): Integer;
-  begin
-    Result := Trunc(RandGen.AsLimitedDouble(1, Upper + 1));
-  end;
-
-  function RndGenerate0(Upper: Integer): Integer;
-  begin
-    Result := Trunc(RandGen.AsLimitedDouble(0, Upper + 1));
-  end;
-
-  function RndGenerateRange(Lower, Upper: Integer): Integer;
-  begin
-    Result := Trunc(RandGen.AsLimitedDouble(Lower, Upper + 1));
-  end;
 
 // ----------------------------- helpers -------------------------------------
 
@@ -315,8 +297,6 @@ begin
   if (MainConn = nil) or (SaveDbConn = nil) then
     raise Exception.Create('GenerateCalendar: both connections must be provided');
 
-  RandGen := TtdCombinedPRNG.Create(0, 0);
-
   EnsureCalendarTable(SaveDbConn);
   SaveDbConn.StartTransaction;
   try
@@ -351,7 +331,6 @@ begin
     end;
   end;
 
-  RandGen.Free;
 end;
 
 end.

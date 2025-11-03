@@ -62,8 +62,8 @@ begin
   // IMMAGINE bandiera nell'header
   FHeaderFlag := TImage.Create(Self);
   FHeaderFlag.Parent := FHeaderName;
-  FHeaderFlag.Width := 48;
-  FHeaderFlag.Height := 32;
+  FHeaderFlag.Width := 28;
+  FHeaderFlag.Height := 28;
   FHeaderFlag.Align := TAlignLayout.None;
   FHeaderFlag.Position.X := FHeaderName.Width - FHeaderFlag.Width - 10;
   FHeaderFlag.Position.Y := FHeaderName.Height - FHeaderFlag.Height - 8;
@@ -196,8 +196,8 @@ var
 begin
   // header nome giocatore
   FHeaderName.Text := APlayer.FName + APlayer.FSurname +  sLineBreak +  IntTostr(APlayer.Age) ;
-  if FileExists(DirAssets + 'c' + IntToStr(APlayer.FCountry) + '.bmp') then
-    FHeaderFlag.Bitmap.LoadFromFile(DirAssets + 'c' + IntToStr(APlayer.FCountry) + '.bmp')
+  if FileExists(DirAssets + 'c' + IntToStr(APlayer.FCountry) + '.png') then
+    FHeaderFlag.Bitmap.LoadFromFile(DirAssets + 'c' + IntToStr(APlayer.FCountry) + '.png')
   else
   FHeaderFlag.Bitmap.Clear(TAlphaColorRec.Null);
 

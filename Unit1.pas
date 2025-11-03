@@ -3,7 +3,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.UITypes, System.Types, System.Variants,
-  FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,u_TileGrid,u_FieldLines,
+  FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,u_TileGrid,u_FieldLines, u_RandomHelper,
   FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D, FMX.SpinBox,
   FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer, u_SqlcreateSave, math,
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
@@ -412,7 +412,7 @@ begin
                                     Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y,
                                     TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].SeasonPlayed, '', ABasePlayer.Surname , ABasePlayer.DefaultStat , ABasePlayer.Traits );
 
-    Players[i].FCountry := 1;
+    Players[i].FCountry := RndGenerate(6);
     FillRandomXp ( Players[I].FxpStats );
     Players[I].FGridIndex := Grid[2].FGridIndex;
     Players[I].CellX := TmpPlayer.CellX;

@@ -25,7 +25,8 @@ uses
   u_PlayerModel in 'u_PlayerModel.pas',
   u_Traits in 'u_Traits.pas',
   u_Types in 'u_Types.pas',
-  u_PlayerTemplates in 'u_PlayerTemplates.pas';
+  u_PlayerTemplates in 'u_PlayerTemplates.pas',
+  u_RandomHelper in 'u_RandomHelper.pas';
 
 {$R *.res}
 

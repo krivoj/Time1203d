@@ -2,7 +2,7 @@ unit u_SystemUtils;
 
 interface
 uses
-  Winapi.Windows, Winapi.ShLwApi, System.SysUtils, SHlObj, FMX.Graphics, System.UITypes, u_Types, u_Random;
+  Winapi.Windows, Winapi.ShLwApi, System.SysUtils, SHlObj, FMX.Graphics, System.UITypes, u_Types, u_Random, u_RandomHelper;
 
 function GetLocalAppDataPath: string;
 procedure ModifyPixels(const Bitmap: TBitmap; Color1From, Color1To,Color2From, Color2To,Color3From, Color3To: TAlphaColor );
@@ -10,7 +10,6 @@ procedure FillRandomXp ( var xpArray: ArrayStats );
 implementation
 var
   Path: array[0..MAX_PATH] of Char;
-  RandGen : TtdCombinedPRNG;
 
 function GetLocalAppDataPath: string;
 begin
@@ -19,10 +18,6 @@ begin
   else
     Result := '';
 end;
-  function RndGenerate(Upper: Integer): Integer;
-  begin
-    Result := Trunc(RandGen.AsLimitedDouble(1, Upper + 1));
-  end;
 
 procedure ModifyPixels(const Bitmap: TBitmap; Color1From, Color1To,Color2From, Color2To,Color3From, Color3To: tAlphaColor );
 var
@@ -52,9 +47,7 @@ procedure FillRandomXp ( var xpArray: ArrayStats );
 var
   i: integer;
 begin
-  RandGen := TtdCombinedPRNG.Create(0, 0);
   for I := Low(xpArray) to High(xpArray) do
     xpArray[i] := RndGenerate(120);
-  RandGen.Free;
 end;
 end.
