@@ -1,12 +1,4 @@
 ﻿unit Unit1;
- { TODO :
-Al posto di MatchesPlayed e matchesLeft usare SeasonPlayed e SeasonLeft o Remain
-e vengono aggiornate alla fine di ogni stagione  in quanto season_match è 38 ma anche 30. }
- { TODO : createplayers all'inizio deve mettere nella grid 0 e 1 oppure quando leggerà da DB nelle grid settate sul db }
- { TODO : partire con il Statpanel visible e selzionato sul primo giocatore (il GK) }
- { TODO : settare solo 4  viste camere }
- { TODO : le grid reserve vanno il alto e in basso. }
- { TODO : switch to traits e button seell, dismiss. inoltre qui i traits attivi che si illuminano durante la skill }
 interface
 
 uses
@@ -52,7 +44,7 @@ type
     procedure TileMouseMove(Sender: TObject; CellX,CellY: integer);
     function GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayer;
 
-    procedure CreatePlayers;
+    procedure CreateTestPlayers;
     procedure CreateGround;
   public
     end;
@@ -156,23 +148,15 @@ begin
     if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
       SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
       if SelectedPlayer = nil then exit;
-      PlayerStatsPanel.Tag := SelectedPlayer.FGuid;
-      PlayerStatsPanel.BuildFromPlayer(StatNames, SelectedPlayer);
-      PlayerStatsPanel.Visible := True;
-      PlayerStatsPanel.BringToFront ;
 
       StartTilePos := Point ( CellX, CellY );
       StartPoint3DPos :=  SelectedPlayer.FPlayerModel.FModel.Position.Point;
       MouseStatus := Ms_Waiting_For_Destination_Cell;
       if SelectedPlayer.HasTrait (TRAIT_GOALKEEPER) then begin
         Grid[2].HighlightCell(0,5);
-        Grid[0].HighlightAllcells;
-        Grid[1].HighlightAllcells;
       end
       else begin
         Grid[2].HighlightFormationsCols;
-        Grid[0].HighlightAllcells;
-        Grid[1].HighlightAllcells;
       end;
 
     end
@@ -197,8 +181,6 @@ begin
           SelectedPlayer := nil;
           MouseStatus := ms_None;
           Grid[2].ClearHighLights;
-          Grid[0].ClearHighlights;
-          Grid[1].ClearHighlights;
 
       end;
     end
@@ -210,8 +192,17 @@ begin
   Caption :=Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]);
 end;
 procedure TForm1.TileMouseMove(Sender: TObject; CellX,CellY: integer);
+var
+  APlayer: TPlayer;
 begin
-//  SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
+  APlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
+  if APlayer = Nil then exit;
+
+  PlayerStatsPanel.Tag := APlayer.FGuid;
+  PlayerStatsPanel.BuildFromPlayer(StatNames, APlayer);
+  PlayerStatsPanel.Visible := True;
+  PlayerStatsPanel.BringToFront ;
+
 end;
 
 procedure TForm1.InitMenu;
@@ -284,7 +275,6 @@ begin
   PlayerStatsPanel.Parent := Form1;
   PlayerStatsPanel.Visible := False;
 
-
 // creo bitmap dinamica
 // 1️⃣ Creo bitmap dinamica del campo
   FieldBitmap := CreateSoccerFieldBitmap(
@@ -322,7 +312,7 @@ begin
   Reserve0.SetBasePosition(0, 12);  // centrata in verticale
   Reserve1.SetBasePosition(0, 11);
 
-  CreatePlayers;
+  CreateTestPlayers;
 
   Form1.WindowState := TWindowState.wsMaximized;
   GameScreen := gsFormation;
@@ -332,9 +322,10 @@ begin
 
   // Camera
   SetupCameraTopView;
-  //SetupFieldLights;
 
 
+  PlayerStatsPanel.Visible := True;
+  PlayerStatsPanel.BuildFromPlayer(StatNames, Players[0]);
 end;
 procedure TForm1.BtnNewGameClick(Sender: TObject);
 var
@@ -356,7 +347,7 @@ begin
   Close;
 end;
 
-procedure TForm1.CreatePlayers;
+procedure TForm1.CreateTestPlayers;
 var
   i, row, col, Count: Integer;
   tile: TModelTile;
@@ -400,7 +391,7 @@ begin
                                     nil, nil,
                                     0,
                                     0,
-                                    I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].MatchesPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.DefaultStat , ABasePlayer.Traits );
+                                    I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].SeasonPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.DefaultStat , ABasePlayer.Traits );
 
     if I < 10 then begin
       TmpPlayer.CellX := 0;
@@ -419,8 +410,9 @@ begin
                                     BaseModel, FinalTexture,
                                     Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.X,
                                     Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y,
-                                    TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].MatchesPlayed, '', ABasePlayer.Surname , ABasePlayer.DefaultStat , ABasePlayer.Traits );
+                                    TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].SeasonPlayed, '', ABasePlayer.Surname , ABasePlayer.DefaultStat , ABasePlayer.Traits );
 
+    Players[i].FCountry := 1;
     FillRandomXp ( Players[I].FxpStats );
     Players[I].FGridIndex := Grid[2].FGridIndex;
     Players[I].CellX := TmpPlayer.CellX;

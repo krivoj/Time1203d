@@ -11,13 +11,15 @@ type
     procedure SetGridCells ( AGridCell: TGridCell );
     function GetDefaultCells : TGridCell ;
     procedure SetDefaultCells ( AGridCell: TGridCell );
-
+    function GetAge : Integer;
     procedure SetSurname(const Value: string);
   public
     FGuid: Integer;
+    FAge: Integer;
+    FCountry: integer;
     FTeam: Integer;
     FGuidTeam: Integer;
-    FMatchesPlayed: Integer;
+    FSeasonPlayed: Integer;
     FPlayerModel: TPlayerModel;
     FGridIndex: Integer;
     FDefaultCellX: Integer;
@@ -32,7 +34,7 @@ type
     FTraits: ArrayTraits;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel : TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
-                       const AGuid, ATeam, AGuidTeam, AMatchesPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
+                       const AGuid, ATeam, AGuidTeam, ASeasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
                        );
 
     destructor Destroy; override;
@@ -43,6 +45,7 @@ type
     property CellY: integer read FCellY write FCellY;
     property Cells: TGridCell read GetGridCells write SetGridCells;
     property Surname: string read FSurname write SetSurname;
+    property Age: Integer read GetAge;
   end;
 
 const
@@ -81,7 +84,7 @@ begin
 end;
 constructor TPlayer.Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel: TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
-                       const AGuid, ATeam, AGuidTeam, AMatchesPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
+                       const AGuid, ATeam, AGuidTeam, AseasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
                        );
 begin
   if BaseModel <> nil then
@@ -89,7 +92,7 @@ begin
     FGuid:= AGuid;
     FTeam := ATeam;
     FGuidTeam:= AGuidTeam;
-    FMatchesPlayed :=AMatchesPlayed;
+    FSeasonPlayed := ASeasonPlayed;
     FSurname:= ASurname;
     FDefaultStats := rStats;
     FStats := rStats;
@@ -102,6 +105,10 @@ begin
   FSurname := Value;
   if FPlayerModel.FModel <> nil then
     FPlayerModel.FLabel3D.Text := Value;
+end;
+function TPlayer.GetAge: integer;
+begin
+  Result := FSeasonPlayed + 18;
 end;
 procedure TPlayer.SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
 begin

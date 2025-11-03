@@ -7,7 +7,7 @@ uses U_Types, U_Traits;
     Surname : string;
     Traits: ArrayTraits;
     DefaultStat : ArrayStats;
-    MatchesPlayed: Integer;
+    SeasonPlayed: Integer;
   end;
 var
   Templates : Array [0..21] of PlayerTemplate;
@@ -53,7 +53,7 @@ initialization;
   Templates[0].DefaultStat[Technique]:= 16;
   Templates[0].DefaultStat[RushingOut]:= 16;
   Templates[0].DefaultStat[ShotStopping]:= 20;
-  Templates[0].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[0].SeasonPlayed:= 8;
 
   Templates[1].Surname := 'gk passaggi e rushing out';
   Templates[1].Traits[0] := TRAIT_GOALKEEPER;
@@ -78,7 +78,7 @@ initialization;
   Templates[1].DefaultStat[Technique]:= 20;
   Templates[1].DefaultStat[RushingOut]:= 20;
   Templates[1].DefaultStat[ShotStopping]:= 16;
-  Templates[1].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[1].SeasonPlayed:= 8;
 
   // 2 difensore che imposta -bravery -tackling -marking +passing +technique -heading -intuition +agility  +ballcontrol -strenght
   // 3 difensore senza fronzoli +bravery +tackling +marking -passing -technique +heading -intuition -agility  -ballcontrol +strenght
@@ -131,7 +131,7 @@ initialization;
 
   Templates[2].DefaultStat[RushingOut] := 1;
   Templates[2].DefaultStat[ShotStopping] := 1;
-  Templates[2].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[2].SeasonPlayed:= 8;
 
 
 
@@ -163,7 +163,7 @@ initialization;
 
   Templates[3].DefaultStat[RushingOut] := 1;
   Templates[3].DefaultStat[ShotStopping] := 1;
-  Templates[3].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[3].SeasonPlayed:= 8;
 
   // 4 difensore marcatura  +tackling +marking -passing -technique +intuiton -ballcontrol
   Templates[4].Surname := 'difensore marcatura';
@@ -193,7 +193,7 @@ initialization;
 
   Templates[4].DefaultStat[RushingOut] := 1;
   Templates[4].DefaultStat[ShotStopping] := 1;
-  Templates[4].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[4].SeasonPlayed:= 8;
 
   // 5 difensore pressing   +bravery +strenght +tackling -passing -technique -heading
   Templates[5].Surname := 'difensore pressing alto';
@@ -223,7 +223,7 @@ initialization;
 
   Templates[5].DefaultStat[RushingOut] := 1;
   Templates[5].DefaultStat[ShotStopping] := 1;
-  Templates[5].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[5].SeasonPlayed:= 8;
 
   // 6 libero               +intuition +passing -strenght +technique  +ballcontrol  -marking
   Templates[6].Surname := 'libero';
@@ -253,7 +253,7 @@ initialization;
 
   Templates[6].DefaultStat[RushingOut] := 1;
   Templates[6].DefaultStat[ShotStopping] := 1;
-  Templates[6].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[6].SeasonPlayed:= 8;
 
   // 7 terzino difesa       -cross -passing +bravery +tackling +marking -heading -ballcontrol
   Templates[7].Surname := 'terzino difesa';
@@ -283,7 +283,7 @@ initialization;
 
   Templates[7].DefaultStat[RushingOut] := 1;
   Templates[7].DefaultStat[ShotStopping] := 1;
-  Templates[7].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[7].SeasonPlayed:= 8;
 
   // 8 terzino fluidificante +cross +passing -bravery -tackling -marking -heading +ballcontrol
   Templates[8].Surname := 'terzino attacco';
@@ -313,7 +313,7 @@ initialization;
 
   Templates[8].DefaultStat[RushingOut] := 1;
   Templates[8].DefaultStat[ShotStopping] := 1;
-  Templates[8].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[8].SeasonPlayed:= 8;
 
 
   // 9 incontrista +bravery +tackling +strenght -passing -ballcontrol -technique
@@ -344,7 +344,7 @@ initialization;
 
   Templates[9].DefaultStat[RushingOut] := 1;
   Templates[9].DefaultStat[ShotStopping] := 1;
-  Templates[9].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[9].SeasonPlayed:= 8;
 
 
   // 10 regista     -bravery -tackling +passing ballcontrol +technique -strenght -heading
@@ -375,7 +375,7 @@ initialization;
 
   Templates[10].DefaultStat[RushingOut] := 1;
   Templates[10].DefaultStat[ShotStopping] := 1;
-  Templates[10].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[10].SeasonPlayed:= 8;
 
 
   // 11 ccq         + determination +strenght +heading -shot -intuition +ballcontrol -technque
@@ -406,7 +406,7 @@ initialization;
 
   Templates[11].DefaultStat[RushingOut] := 1;
   Templates[11].DefaultStat[ShotStopping] := 1;
-  Templates[11].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[11].SeasonPlayed:= 8;
 
   // 12  mezzala    +intuition +shot +technique -bravery -tackling -marking -ballcontrol
   Templates[12].Surname := 'mezzala';
@@ -436,7 +436,7 @@ initialization;
 
   Templates[12].DefaultStat[RushingOut] := 1;
   Templates[12].DefaultStat[ShotStopping] := 1;
-  Templates[12].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[12].SeasonPlayed:= 8;
 
   // 13  ala invertita  -cross +ballcontrol +passing
   Templates[13].Surname := 'invertita';
@@ -466,7 +466,7 @@ initialization;
 
   Templates[13].DefaultStat[RushingOut] := 1;
   Templates[13].DefaultStat[ShotStopping] := 1;
-  Templates[13].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[13].SeasonPlayed:= 8;
 
   // 14  ala     +cross -passing
   Templates[14].Surname := 'ala';
@@ -496,7 +496,7 @@ initialization;
 
   Templates[14].DefaultStat[RushingOut] := 1;
   Templates[14].DefaultStat[ShotStopping] := 1;
-  Templates[14].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[14].SeasonPlayed:= 8;
 
   // 15  cel,ced +tackling +intuition -cross -shot
   Templates[15].Surname := 'celced';
@@ -526,7 +526,7 @@ initialization;
 
   Templates[15].DefaultStat[RushingOut] := 1;
   Templates[15].DefaultStat[ShotStopping] := 1;
-  Templates[15].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[15].SeasonPlayed:= 8;
 
   // attaccanti
   // 16  uomo area          -cross -heading +shot +technique +agility -bravery -strenght +ballcontrol
@@ -557,7 +557,7 @@ initialization;
 
   Templates[16].DefaultStat[RushingOut] := 1;
   Templates[16].DefaultStat[ShotStopping] := 1;
-  Templates[16].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[16].SeasonPlayed:= 8;
 
   // 17  centravanti        -cross +heading +bravery +strengh
   Templates[17].Surname := 'centravanti';
@@ -587,7 +587,7 @@ initialization;
 
   Templates[17].DefaultStat[RushingOut] := 1;
   Templates[17].DefaultStat[ShotStopping] := 1;
-  Templates[17].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[17].SeasonPlayed:= 8;
 
   // 18  seconda punta      -cross +shot +ballcontrol +intuition  +passing
   Templates[18].Surname := 'seconda punta';
@@ -617,7 +617,7 @@ initialization;
 
   Templates[18].DefaultStat[RushingOut] := 1;
   Templates[18].DefaultStat[ShotStopping] := 1;
-  Templates[18].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[18].SeasonPlayed:= 8;
 
   // 19  attacante esterno  -cross +ballcontrol +shot  -passing  -heading
   Templates[19].Surname := 'attacante esterno';
@@ -647,7 +647,7 @@ initialization;
 
   Templates[19].DefaultStat[RushingOut] := 1;
   Templates[19].DefaultStat[ShotStopping] := 1;
-  Templates[19].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[19].SeasonPlayed:= 8;
 
   // 20  fulcro del gioco  -cross +passing -shot +ballcontrol +heading
   Templates[20].Surname := 'attacante esterno';
@@ -677,7 +677,7 @@ initialization;
 
   Templates[20].DefaultStat[RushingOut] := 1;
   Templates[20].DefaultStat[ShotStopping] := 1;
-  Templates[20].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[20].SeasonPlayed:= 8;
 
   // 21  regista avanzato  -cross +passing +shot +ballcontrol +technique +agility -bravery -heading
   Templates[21].Surname := 'regista avanzato ';
@@ -707,7 +707,7 @@ initialization;
 
   Templates[21].DefaultStat[RushingOut] := 1;
   Templates[21].DefaultStat[ShotStopping] := 1;
-  Templates[21].MatchesPlayed:= SEASON_MATCHES * 8;
+  Templates[21].SeasonPlayed:= 8;
 
   StatNames[0] :='stat_speed';
   StatNames[1] :='stat_tackling';

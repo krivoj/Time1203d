@@ -388,15 +388,17 @@ var
 begin
   if (X < 0) or (X >= FCols) or (Y < 0) or (Y >= FRows) then
     Exit;
-
+//  CellPosX:=  FTiles[X, Y].FPlane.Position.X;
+//  CellPosY:=  FTiles[X, Y].FPlane.Position.Y;
+//  CellPosZ:=  FTiles[X, Y].FPlane.Position.X + 0.01;
   CellPosX := X * FTileSizeX + FTileSizeX / 2;
   CellPosY := Y * FTileSizeY + FTileSizeY / 2;
   CellPosZ := FTileDepth / 2 + 0.01;
 
   HighlightPlane := TPlane.Create(FDummyRoot);
   HighlightPlane.Parent := FDummyRoot;
-  HighlightPlane.Width := FTileSizeX;
-  HighlightPlane.Height := FTileSizeY;
+  HighlightPlane.Width := FTileSizeX-0.5;
+  HighlightPlane.Height := FTileSizeY-0.5;
   HighlightPlane.MaterialSource := FHighlightMaterial;
   HighlightPlane.Opacity := 0.3;
   HighlightPlane.TwoSide := True;
@@ -418,11 +420,11 @@ end;
 
 procedure TTileGrid.HighlightFormationsCols;
 var
-  y, i: Integer;
+  y, x: Integer;
 begin
-  for i := Low(FormationCols) to High(FormationCols) do
+  for x := Low(FormationCols) to High(FormationCols) do
     for y := 0 to FRows - 1 do
-      HighlightCell(FormationCols[i], y);
+      HighlightCell(FormationCols[x], y);
 end;
 procedure TTileGrid.HighlightAllCells;
 var

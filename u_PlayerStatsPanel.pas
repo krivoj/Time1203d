@@ -12,6 +12,7 @@ type
   private
     FRows: array of TLayout; // riferimenti ai row, utile per aggiornare
     FHeaderName: TLabel;
+    FHeaderFlag: TImage;
     FInnerLayout: TLayout;
     FBackground: TRectangle;
     procedure AddStatRow(const StatName: string; Index: Integer);
@@ -49,13 +50,25 @@ begin
   FHeaderName := TLabel.Create(Self);
   FHeaderName.Parent := Self;
   FHeaderName.Align := TAlignLayout.Top;
-  FHeaderName.Height := 50;
-  FHeaderName.Margins.Rect := TRectF.Create(10, 10, 10, 10);
+  FHeaderName.Height := 70;
+  FHeaderName.Margins.Rect := TRectF.Create(1, 1, 1, 1);
   FHeaderName.TextSettings.Font.Size := 20;
   FHeaderName.TextSettings.FontColor := TAlphaColorRec.White;
+  FHeaderName.TextSettings.Font.Style := [TFontStyle.fsBold];
   FHeaderName.TextSettings.HorzAlign := TTextAlign.Center;
   FHeaderName.TextSettings.VertAlign := TTextAlign.Center;
   FHeaderName.StyledSettings := [];
+
+  // IMMAGINE bandiera nell'header
+  FHeaderFlag := TImage.Create(Self);
+  FHeaderFlag.Parent := FHeaderName;
+  FHeaderFlag.Width := 48;
+  FHeaderFlag.Height := 32;
+  FHeaderFlag.Align := TAlignLayout.None;
+  FHeaderFlag.Position.X := FHeaderName.Width - FHeaderFlag.Width - 10;
+  FHeaderFlag.Position.Y := FHeaderName.Height - FHeaderFlag.Height - 8;
+  FHeaderFlag.WrapMode := TImageWrapMode.Stretch;
+  FHeaderFlag.HitTest := False;
 
   // CREO RETTANGOLO DI SFONDO PER LA LABEL
   HeaderBg := TRectangle.Create(Self);
@@ -110,6 +123,7 @@ begin
   Lbl.Align := TAlignLayout.Left;
   Lbl.Width := 140; // più lungo
   Lbl.TextSettings.Font.Size := 16;
+  Lbl.TextSettings.Font.Style := [TFontStyle.fsBold];
   Lbl.TextSettings.FontColor := TAlphaColorRec.White;
   Lbl.StyledSettings := [];
 
@@ -137,6 +151,7 @@ begin
   ValLbl.TextSettings.FontColor := TAlphaColorRec.Black;
   ValLbl.TextSettings.HorzAlign := TTextAlign.Center;
   ValLbl.TextSettings.VertAlign := TTextAlign.Center;
+  ValLbl.TextSettings.Font.Style := [TFontStyle.fsBold];
   ValLbl.StyledSettings := [];
 
   // BARRA sfondo (sotto la barra del valore)
@@ -180,7 +195,11 @@ var
   ValLbl: TLabel;
 begin
   // header nome giocatore
-  FHeaderName.Text := APlayer.FName + ' ' + APlayer.FSurname;
+  FHeaderName.Text := APlayer.FName + APlayer.FSurname +  sLineBreak +  IntTostr(APlayer.Age) ;
+  if FileExists(DirAssets + 'c' + IntToStr(APlayer.FCountry) + '.bmp') then
+    FHeaderFlag.Bitmap.LoadFromFile(DirAssets + 'c' + IntToStr(APlayer.FCountry) + '.bmp')
+  else
+  FHeaderFlag.Bitmap.Clear(TAlphaColorRec.Null);
 
   for i := Low(Names) to High(Names) do
   begin
