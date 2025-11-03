@@ -207,7 +207,7 @@ begin
     end;
 
   end;
-  //  ShowMessage(Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]));
+  Caption :=Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]);
 end;
 procedure TForm1.TileMouseMove(Sender: TObject; CellX,CellY: integer);
 begin
@@ -304,33 +304,24 @@ begin
   Board.SetBasePosition(-9, -5.5); // esempio per centrare 18x11 celle di 1 unit
 
   //Grid := TTileGrid.Create(Self, Viewport3D1,  18,11,  'terrain.bmp');
-  Reserve0:= TTileGrid.Create(Self, Viewport3D1, 0, 1,11, DirAssets + 'terrain.bmp');
-  Reserve1:= TTileGrid.Create(Self, Viewport3D1, 1, 1,11, DirAssets + 'terrain.bmp');
+  Reserve0:= TTileGrid.Create(Self, Viewport3D1, 0, 11,1, DirAssets + 'terrain.bmp');
+  Reserve1:= TTileGrid.Create(Self, Viewport3D1, 1, 11,1, DirAssets + 'terrain.bmp');
   Grid[0]:= Reserve0;
-  Grid[0].FGridIndex := 0;
   Grid[1]:= Reserve1;
-  Grid[1].FGridIndex := 1;
   Grid[2]:= Board;
-  Grid[2].FGridIndex := 2;
-
 
 
   Board.SetBasePosition(0,0);
-  Board.SetRotationZ(0);         // verticale
+  //Board.SetRotationZ(0);         // verticale
 
-  CreateGround;
+  //CreateGround;
 
   FieldDrawer := TFieldDrawer.Create(Self, Viewport3D1, Board);
   FieldDrawer.DrawField;
 
-  // Griglia di riserva sinistra (11x1)
+  Reserve0.SetBasePosition(0, 12);  // centrata in verticale
+  Reserve1.SetBasePosition(0, 11);
 
-  Reserve0.SetBasePosition(-1, 0);  // centrata in verticale
-  Reserve0.SetRotationZ(0);         // verticale
-
-  // Griglia di riserva destra (11x1)
-  Reserve1.SetBasePosition(18, 0);
-  Reserve1.SetRotationZ(0);        // verticale speculare
   CreatePlayers;
 
   Form1.WindowState := TWindowState.wsMaximized;
