@@ -2,9 +2,10 @@ unit u_SystemUtils;
 
 interface
 uses
-  Winapi.Windows, Winapi.ShLwApi, System.SysUtils, SHlObj, FMX.Graphics, System.UITypes, u_Types, u_Random, u_RandomHelper;
+  Winapi.Windows, Winapi.ShLwApi, System.SysUtils, SHlObj, FMX.Graphics, System.UITypes, u_Types, u_Random, u_RandomHelper, StrUtils;
 
 function GetLocalAppDataPath: string;
+Function Capitalize ( aString : string  ): String;
 procedure ModifyPixels(const Bitmap: TBitmap; Color1From, Color1To,Color2From, Color2To,Color3From, Color3To: TAlphaColor );
 procedure FillRandomXp ( var xpArray: ArrayStats );
 implementation
@@ -17,6 +18,15 @@ begin
     Result := Path
   else
     Result := '';
+end;
+
+Function Capitalize ( aString : string  ): String;
+begin
+   if Length ( astring ) > 0 then
+    Result :=  UPPERCASE (aString[1]) + RightStr ( aString , Length ( aString ) -1 )
+    else
+      result := '';
+
 end;
 
 procedure ModifyPixels(const Bitmap: TBitmap; Color1From, Color1To,Color2From, Color2To,Color3From, Color3To: tAlphaColor );

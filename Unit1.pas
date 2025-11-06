@@ -3,12 +3,12 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.UITypes, System.Types, System.Variants,
-  FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,u_TileGrid,u_FieldLines, u_RandomHelper,
+  FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,u_TileGrid,u_FieldLines, u_RandomHelper,u_Localization,u_Systemutils,
   FMX.Viewport3D, System.Math.Vectors, FMX.Controls3D , FMX.Objects3D, FMX.SpinBox,
   FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.objects, FMX.materialSources ,FMX.OBJ.importer, u_SqlcreateSave, math,
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
-  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FMX.Types3D,FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,u_SystemUtils,System.IOUtils,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FMX.Types3D,FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,System.IOUtils,
   FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Traits, u_PlayerStatsPanel;
 
 Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
@@ -77,7 +77,9 @@ begin
   DirAssets := ExtractFilePath(ParamStr(0)) + 'Assets\';
   DirSaves := GetLocalAppDataPath;
   ForceDirectories(DirSaves + '\Time120\');
-
+  language:='IT';
+  FileLocalization := ExtractFilePath(ParamStr(0)) + '\localization\'+ language + '\messages.txt';
+  LoadTranslations(FileLocalization);
   // Viewport3D a coprire tutta la form
   Viewport3D1.Align := TAlignLayout.Client;
   Viewport3D1.Visible := False;

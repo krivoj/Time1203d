@@ -1,0 +1,300 @@
+[setup]
+LanguageName=English
+LanguageID=$0410
+LanguageCodePage=1252
+
+[Messages]
+attribute_Speed=Speed
+attribute_Defense=Defense
+attribute_Passing=Passing
+attribute_Ball.Control=Control
+attribute_Shot=Shot
+attribute_Heading=Heading
+attribute_Stamina=Stamina
+attribute_Fitness=Fitness
+attribute_Morale=Morale
+
+skill_Move=Move
+skill_Short.Passing=Short Passing
+skill_Lofted.Pass=Lofted Pass
+skill_Crossing=Cross
+skill_Precision.Shot=Precision Shot
+skill_Power.Shot=Power Shot
+skill_Dribbling=Dribbling
+skill_Protection=Protection
+skill_Tackle=Tackle
+skill_Pressing=Pressing
+skill_Pass=End Turn
+skill_Stay=Stay
+skill_Free=free
+skill_Corner.Kick=Corner Kick
+skill_Volley=Volley
+skill_BuffD=Defense wall
+skill_BuffM=Solid midfield
+skill_BuffF=Berseker attack
+
+skill_Intercept=Intercept
+
+talent_Goalkeeper=Goalkeeper
+talent_Challenge=Challenge
+talent_Toughness=Toughness
+talent_Power=Power
+talent_Crossing=Crossing
+talent_LongPass=LongPass
+talent_Experience=Experience
+talent_Dribbling=Dribbling
+talent_Bulldog=Bulldog
+talent_Offensive=Offensive
+talent_Defensive=Defensive
+talent_Bomb=Bomb
+talent_Playmaker=Playmaker
+talent_Faul=Faul
+talent_Marking=Marking
+talent_Positioning=Positioning
+talent_FreeKicks=Free Kicks
+talent_Agility=Agility
+talent_Rapidpassing=Rapid Passing
+talent_Aggression=Aggression
+talent_Ace=Ace
+talent_advanced_challenge=Challenge 2
+talent_advanced_toughness=Toughness 2
+talent_advanced_power=Power 2
+talent_advanced_crossing=Crossing 2
+talent_advanced_experience=Pressing 2
+talent_advanced_dribbling=Dribbling 2 
+talent_advanced_bulldog=Bulldogg 2
+talent_advanced_aggression=Aggression 2
+talent_advanced_bomb=Bomb 2
+talent_precise_crossing=Precise Crossing
+talent_super_dribbling=Super Dribbling
+talent_buff_defense=Defense wall
+talent_buff_middle=Solid midfield
+talent_buff_forward=Berseker attack
+talent_heading=Heading
+talent_finishing=Finalizzazione
+talent_diving=Diving
+
+talent_gkmiracle=Miracle.
+talent_gkpenalty=Penalty God.
+
+role_G=Gk
+role_D=Def
+role_M=Mid
+role_F=For
+
+descr_attribute_Speed=Speed
+descr_attribute_Defense=Defense
+descr_attribute_Passing=Passing
+descr_attribute_Ball.Control=Control
+descr_attribute_Shot=Shot
+descr_attribute_Heading=Heading
+descr_attribute_Stamina=Stamina
+
+descr_skill_Move=Move
+descr_skill_Heading=Heading
+descr_skill_Short.Passing=Short Passing
+descr_skill_Lofted.Pass=Lofted Pass
+descr_skill_Crossing=Cross
+descr_skill_Precision.Shot=Precision Shot
+descr_skill_Power.Shot=Power Shot
+descr_skill_Dribbling=Dribbling
+descr_skill_Protection=Protection
+descr_skill_Tackle=Tackle
+descr_skill_Pressing=Pressing
+descr_skill_Corner.Kick=Corner Kick
+descr_skill_Volley=Volley
+descr_skill_BuffD=Defense wall
+descr_skill_BuffM=Solid midfield
+descr_skill_BuffF=Berseker attack
+
+
+descr_talent_Goalkeeper=Can be a Goal Keeper!
+descr_talent_Challenge=+1 Tackle passivo durante gli spostamenti dell'avversario con la palla.
+descr_talent_Toughness=+1 Tackle.
+descr_talent_Power=+1 Resistenza ai Tackle attivi e passivi.
+descr_talent_Crossing=+1 sui Cross.
+descr_talent_LongPass=Estende di 1 la distanza dei passaggi.
+descr_talent_Experience=Fare Pressing non costa mosse.
+descr_talent_Dribbling=+1 Dribbling.
+descr_talent_Bulldog=+1 Anticipo durante i passaggi corti avversari.
+descr_talent_Offensive=Tende a muoversi verso l'area avversaria.
+descr_talent_Defensive=Tende a muoversi verso la propria area.
+descr_talent_Bomb=+1 a tutti i bonus di Tiro.
+descr_talent_Playmaker=Cerca di avvicinarsi al proprio portatore di palla. Inoltre i suoi passaggi corti terminanti in area avversaria conferiscono un bonus al ricevente.
+descr_talent_Faul=+15% chance di commettere un fallo. -30% chance di subire sanzioni.
+descr_talent_Marking=DIF=Marca l'attaccante con il Tiro piu' alto. Cen=Marca il Centrocampista con il passaggio piu' alto. ATT=Marca il difensore con il Controllo piu' basso.
+descr_talent_positioning=Cerca di tornare verso la propria zona di campo.
+descr_talent_FreeKicks=+1 Tiro sui Calci di punizione e rigori.
+descr_talent_Agility=Quando riceve un passaggio corto distante almeno 2 celle, guadagna 1 turno.
+descr_talent_Rapidpassing=Quando riceve un passaggio corto, ha una chance del 33% di effettuare un passaggio filtrante che non puo' essere intercettato.
+descr_talent_Aggression=Si muove verso il portatore di palla.
+descr_talent_Ace=Quando subisce Pressing, ha una chance del 33% di effettuare un dribbling vincente.
+descr_talent_advanced_challenge=Ha una chance del 5% di ottenere +1 durante i contrasti passivi.
+descr_talent_advanced_toughness=Ha una chance del 5% di ottenere +1 durante i contrasti.
+descr_talent_advanced_power=Ha una chance del 5% di ottenere +1 di resistenza ai contrasti.
+descr_talent_advanced_crossing=Ha una chance del 5% di ottenere +1 Cross.
+descr_talent_advanced_experience=Pressing costa -1.
+descr_talent_advanced_dribbling=+1 dribbling. 
+descr_talent_advanced_bulldog=+2 intercept.
+descr_talent_advanced_aggression=Ha una chance del 25% di fare pressing automatico sul portatore di palla se lo raggiunge. 
+descr_talent_advanced_bomb=Ha una chance del 5% di ottenere +2 durante un Tiro potente.
+descr_talent_precise_crossing=+1 Cross da fondo campo.
+descr_talent_super_dribbling=Ha una chance del 15% di ottenere dribbling +3.
+descr_talent_buff_defense=Abilita il buff al reparto Difesa (5% chance di ottenere +1 Difesa, Controllo di Palla e Passaggio a tutti i difensori per 20 turni).
+descr_talent_buff_middle=Abilita il buff al reparto Centrocampo (5% chance di ottenere +1 Velocita', Difesa, Controllo di Palla e Passaggio a tutti i centrocampisti per 20 turni).
+descr_talent_buff_forward=Abilita il buff al reparto Attacco (5% chance di ottenere +1 Tiro, Controllo di Palla e Passaggio a tutti gli attaccanti per 20 turni).
+descr_talent_heading=Ha una chance del 5% di ottenere +1 colpi di testa durante i cross e i corner.
+descr_talent_finishing=Se gli cade la palla addosso dopo un rimbalzo ha +1 Tiro. Valido solo nel proprio turno.
+descr_talent_diving=+10% chance di subire un fallo durante i tackle.
+
+descr_talent_gkmiracle=Ha una chance del 10% di ottenere +1 Difesa sui tiri precisi a distanza 1. Non valido sui rigori.
+descr_talent_gkpenalty=Ha una chance del 10% di ottenere +1 Difesa sui rigori. 
+
+
+lbl_TrainingTalentChance=Training Talent
+lbl_InjuredChance=Injured Chance
+lbl_TrainingChance=Training
+lbl_Talent=Talento
+lbl_Talents=Talents
+lbl_Role=Role
+lbl_Surname=Surname
+lbl_Back=Back
+lbl_Play=Play
+lbl_EndTurn=Pass
+lbl_Round=Turn
+lbl_Round2=Round
+lbl_Simulate=Simulation
+lbl_Formation=Formation
+lbl_Calendar=Calendar
+lbl_Standings=Standings
+lbl_Standing=Table
+lbl_Exit=Exit
+lbl_Thinking=Thinking...
+lbl_Minute=Minute
+lbl_Corner=Corner
+lbl_GameOver=Game Over
+lbl_AudioStadium=Audio Stadium
+lbl_yourturn=Your Turn.
+lbl_endturn=Finished.
+lbl_M=Man
+lbl_F=Woman
+
+lbl_Tactics=Tactics
+lbl_Tactic=Tactic
+lbl_Substitution=Substitution
+lbl_Substitutions=Substitutions
+
+lbl_RedCard=Red Card
+lbl_YellowCard=Yellow Card
+lbl_Injured=Injured
+
+lbl_NextTurn=Next Round
+lbl_Money=Money
+lbl_MI=M.I.
+lbl_Points=Points
+lbl_Rank=Rank
+
+lbl_Select=Select
+lbl_Login=Login
+lbl_Help=Help
+lbl_Refresh=Refresh
+lbl_Wait=Wait
+lbl_MarketValue=Market Value
+lbl_Age=Age
+lbl_MatchesLeft=Matches left
+lbl_MatchesLeft2=M. Left
+lbl_Confirm=Confirm
+lbl_Rounds_left=Rounds left
+lbl_Freekick=Free Kick
+lbl_Fault=Fault
+lbl_Penalty=Penalty
+lbl_errorlogin=Login Error
+lbl_errorformation=Invalid Formation
+lbl_watchlive=Watch match
+lbl_Archive=Archive
+lbl_waitingwatchlive=Waiting for signal
+lbl_loading=Loading...
+
+lbl_Levelup=Level up!
+lbl_Dismiss=Dismiss
+lbl_ConfirmDismiss=Are you joking? 
+
+lbl_FormationOK=Formation OK
+lbl_Reset=Resetta
+lbl_Invalid_Formation=Invalid Formation
+lbl_Uniform=Uniform
+lbl_Jersey=Jersey
+lbl_Shorts=Shorts
+lbl_Socks=Socks
+lbl_Home=Home
+lbl_Away=Away
+lbl_Close=Close
+lbl_endgame=Game Over
+
+lbl_computemarket=Elaborazione mercato 
+lbl_creatingteams=Creating teams
+lbl_creatingdivions=Creating divisions 
+lbl_elaboratingmatches=Matches in progress
+lbl_Country=Country
+lbl_Country2=Country
+lbl_Sell=Sell
+lbl_Buy=Buy
+lbl_Cancel=Cancel
+lbl_CancelSell=Cancel Sell
+lbl_ErrorMarketMax=Max 3 Player on Market
+lbl_Market=Market
+lbl_Info=Info
+lbl_Confirm=Confirm
+lbl_Price=Price
+lbl_Search=Search
+lbl_MaxValue=max value
+warning_nosellgk=Non puoi vendere l'unico portiere che hai.
+warning_max22=Non puoi avere piu' di 22 giocatori.
+warning_nosell_lowprice=Non puoi vendere un giocatore ad un costo inferiore al suo valore di mercato.
+warning_nobuyown=Non puoi comprare un giocatore gia' in tuo possesso.
+lbl_ConfirmBuy=Are you sure?
+
+lbl_ConfirmTeam=Confirm your choice?
+lbl_Uniform1=Color 1
+lbl_Uniform2=Color 2
+lbl_UniformNormal=Normal
+lbl_Automatic=Auto
+
+lbl_Continue=Continue
+lbl_Restart=Restart
+lbl_MultiPlayer=MultiPlayer
+lbl_SinglePlayer=Single Player
+lbl_RestartAdvice=Are you sure? Every progress will be lost. 
+
+lbl_Yes=Yes
+lbl_No=No
+
+lbl_warningrestart=You need to restart Time120 for changes to take effect.
+lbl_language=Language
+
+lbl_Topscorers=Top Scorers
+warning_proceed=Next game:
+warning_nomatchsaved=The game will be not saved. Are you sure?
+lbl_warning=Warning!
+lbl_selectcountry=Select country
+lbl_selectteam=Select team
+
+hintskill_confirm=Conferma la scelta.
+hintskill_shortpassing=Scegli dove passare la palla.
+hintskill_loftedpass=Scegli dove passare la palla. 
+hintskill_crossing=Scegli chi che provera' a colpire di testa.
+hintskill_move=Scegli dove muoverti.
+hintskill_dribbling=Scegli chi vuoi dribblare.
+
+hintskill_fkf1=Scegli chi battera' la punizione.
+hintskill_fkf2=Scegli chi battera' la punizione.
+hintskill_fka2=Scegli tre saltatori.
+hintskill_fkd2=Scegli tre saltatori.
+hintskill_fkf3=Scegli chi battera' la punizione.
+hintskill_fkd3=Scegli quattro giocatori da mettere in barriera.
+hintskill_fkf4=Scegli chi battera' il rigore.
+hintskill_cornercof=Scegli chi battera' il calcio d'angolo.
+hintskill_cornercoa=Scegli tre saltatori.
+hintskill_cornercod=Scegli tre saltatori.
+
+hintskill_cancel=Click destro per annullare.

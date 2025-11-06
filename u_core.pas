@@ -32,6 +32,8 @@ type
     FStats: ArrayStats;
     FxpStats: ArrayStats;
     FTraits: ArrayTraits;
+    FConditioning: Integer;
+    FInjuryResistance: Integer;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel : TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
                        const AGuid, ATeam, AGuidTeam, ASeasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits

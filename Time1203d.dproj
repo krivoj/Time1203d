@@ -143,6 +143,7 @@
         <DCCReference Include="u_Types.pas"/>
         <DCCReference Include="u_PlayerTemplates.pas"/>
         <DCCReference Include="u_RandomHelper.pas"/>
+        <DCCReference Include="u_Localization.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
