@@ -27,7 +27,9 @@ uses
   u_Types in 'u_Types.pas',
   u_PlayerTemplates in 'u_PlayerTemplates.pas',
   u_RandomHelper in 'u_RandomHelper.pas',
-  u_Localization in 'u_Localization.pas';
+  u_Localization in 'u_Localization.pas',
+  u_skills in 'u_skills.pas',
+  u_Lang in 'u_Lang.pas';
 
 {$R *.res}
 
