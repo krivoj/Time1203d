@@ -14,7 +14,8 @@ var
   ASkill: TSkill;
 function CreateRandomPlayer(ATemplate: PlayerTemplate; Weakening: integer): PlayerTemplate;
 implementation
-
+var
+  I: integer;
 
 
 function CreateRandomPlayer(ATemplate: PlayerTemplate; Weakening: integer): PlayerTemplate;
@@ -30,14 +31,19 @@ end;
 // Ricorda:  Templates[0].Age := Trunc(Templates[0].MatchesPlayed div SEASON_MATCHES) + 18;
 // Ricorda MatchesLeft := (SEASON_MATCHES * 15) - MatchesPlayed;
 initialization;
+  for I := 0 to 21 do begin
+    Templates[I].Skills := TObjectList<TSkill>.Create(False);
+    Templates[I].SeasonPlayed:= 8;
+    Templates[I].Stat[STAT_SPEED] := 5;
+    Templates[I].Stat[STAT_STRENGTH]:= 5;
+    Templates[I].Stat[STAT_TECHNIQUE]:= 5;
+    Templates[I].Stat[STAT_AGILITY]:= 5;
+    Templates[I].Stat[STAT_INTUITION] := 5;
+  end;
 
   Templates[0].Surname := 'gk difesa';      // importante elemento 0
-  Templates[0].Skills := TObjectList<TSkill>.Create;
-  Templates[0].SeasonPlayed:= 8;
 
   Templates[1].Surname := 'gk passaggi e rushing out';
-  Templates[1].Skills := TObjectList<TSkill>.Create;
-  Templates[1].SeasonPlayed:= 8;
 
   // 2 difensore che imposta -bravery -tackling -marking +passing +technique -heading -intuition +agility  +ballcontrol -strenght
   // 3 difensore senza fronzoli +bravery +tackling +marking -passing -technique +heading -intuition -agility  -ballcontrol +strenght
@@ -64,78 +70,29 @@ initialization;
 
   // 2 difensore che imposta -bravery -tackling -marking +passing +technique -heading -intuition +agility  +ballcontrol -strenght
   Templates[2].Surname := 'difensore che imposta';
-  Templates[2].Skills := TObjectList<TSkill>.Create;
 
-  ASkill := TSkill.Create ( SKILL_RUN, 5, 0);
-  Templates[2].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_PASS_LOW, 5, 0);
-  Templates[2].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_SHOT_BLOCK, 5, 0);
-  Templates[2].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_HEADER, 5, 0);
-  Templates[2].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_TACKLE, 5, 0);
-  Templates[2].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_INTERCEPTION, 5, 0);
-  Templates[2].Skills.add ( ASkill );
+  Templates[2].Skills.add ( GetOriginalSkill ( SKILL_RUN, 5 ));
+  Templates[2].Skills.add ( GetOriginalSkill ( SKILL_PASS_LOW, 5 ));
+  Templates[2].Skills.add ( GetOriginalSkill ( SKILL_SHOT_BLOCK, 5 ));
+  Templates[2].Skills.add ( GetOriginalSkill ( SKILL_HEADER, 5 ));
+  Templates[2].Skills.add ( GetOriginalSkill ( SKILL_TACKLE, 5 ));
+  Templates[2].Skills.add ( GetOriginalSkill ( SKILL_INTERCEPTION, 5 ));
 
-  Templates[2].Stat[STAT_STRENGTH]:= 5;
-  Templates[2].Stat[STAT_TECHNIQUE]:= 5;
-  Templates[2].Stat[STAT_SPEED] := 5;
-  Templates[2].Stat[STAT_AGILITY]:= 5;
-  Templates[2].Stat[STAT_INTUITION] := 5;
-
-  Templates[2].SeasonPlayed:= 8;
-
-
-  // 3 difensore senza fronzoli +bravery +tackling +marking -passing -technique +heading -intuition -agility  -ballcontrol +strenght
   Templates[3].Surname := 'difensore senza fronzoli';
-  Templates[3].Skills := TObjectList<TSkill>.Create;
-
-  ASkill := TSkill.Create ( SKILL_RUN, 5, 0);
-  Templates[3].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_PASS_HIGH, 5, 0);
-  Templates[3].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_SHOT_BLOCK, 5, 0);
-  Templates[3].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_HEADER, 5, 0);
-  Templates[3].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_TACKLE, 5, 0);
-  Templates[3].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_REACTION, 5, 0);
-  Templates[3].Skills.add ( ASkill );
-
-  Templates[3].Stat[STAT_STRENGTH]:= 5;
-  Templates[3].Stat[STAT_TECHNIQUE]:= 5;
-  Templates[3].Stat[STAT_SPEED] := 5;
-  Templates[3].Stat[STAT_AGILITY]:= 5;
-  Templates[3].Stat[STAT_INTUITION] := 5;
-
-  Templates[3].SeasonPlayed:= 8;
+  Templates[3].Skills.add ( GetOriginalSkill ( SKILL_RUN, 5 ));
+  Templates[3].Skills.add ( GetOriginalSkill ( SKILL_PASS_HIGH, 5 ));
+  Templates[3].Skills.add ( GetOriginalSkill ( SKILL_SHOT_BLOCK, 5 ));
+  Templates[3].Skills.add ( GetOriginalSkill ( SKILL_HEADER, 5 ));
+  Templates[3].Skills.add ( GetOriginalSkill ( SKILL_TACKLE, 5 ));
+  Templates[3].Skills.add ( GetOriginalSkill ( SKILL_REACTION, 5 ));
 
   Templates[4].Surname := 'difensore marcatura';
-  Templates[4].Skills := TObjectList<TSkill>.Create;
-
-  ASkill := TSkill.Create ( SKILL_RUN, 5, 0);
-  Templates[4].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_PASS_LOW, 5, 0);
-  Templates[4].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_TACKLE, 5, 0);
-  Templates[4].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_SHOT_BLOCK, 5, 0);
-  Templates[4].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_HEADER, 5, 0);
-  Templates[4].Skills.add ( ASkill );
-  ASkill := TSkill.Create ( SKILL_INTERCEPTION, 5, 0);
-  Templates[4].Skills.add ( ASkill );
-
-  Templates[4].Stat[STAT_STRENGTH]:= 5;
-  Templates[4].Stat[STAT_TECHNIQUE]:= 5;
-  Templates[4].Stat[STAT_SPEED] := 5;
-  Templates[4].Stat[STAT_AGILITY]:= 5;
-  Templates[4].Stat[STAT_INTUITION] := 5;
-
-  Templates[4].SeasonPlayed:= 8;
+  Templates[4].Skills.add ( GetOriginalSkill ( SKILL_RUN, 5 ));
+  Templates[4].Skills.add ( GetOriginalSkill ( SKILL_PASS_LOW, 5 ));
+  Templates[4].Skills.add ( GetOriginalSkill ( SKILL_TACKLE, 5 ));
+  Templates[4].Skills.add ( GetOriginalSkill ( SKILL_SHOT_BLOCK, 5 ));
+  Templates[4].Skills.add ( GetOriginalSkill ( SKILL_HEADER, 5 ));
+  Templates[4].Skills.add ( GetOriginalSkill ( SKILL_INTERCEPTION, 5 ));
 
   Templates[5].Surname := 'difensore lanci lunghi';
   Templates[5].Skills := TObjectList<TSkill>.Create;

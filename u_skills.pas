@@ -84,15 +84,14 @@ type
     Level: Integer;
     PreReqStat: Integer;
 
-    constructor Create(_Id, _Level, _PreReqStat : Integer); overload;
-    constructor CopyFromTemplate(_Id, Lvl: Integer); overload;
+    constructor Create(_Id, _Level : Integer);
+    constructor CopyFromTemplate(_Id, Lvl: Integer);
 
     function GetName: string;
   end;
 
+  function GetOriginalSkill ( _id, _Level: integer ): TSkill;
 implementation
-
-
 
 // -----------------------------------------------------------------------------
 // Storage template
@@ -102,13 +101,26 @@ var
   SkillId: Integer;
   Lvl: Integer;
   I: integer;
+
+function GetOriginalSkill ( _id, _Level: integer ): TSkill;
+var
+  I: integer;
+begin
+  for I := 0 to OriginalSkills.Count -1 do
+  begin
+    if (OriginalSkills[I].Id = _Id) and (OriginalSkills[I].Level= Lvl) then begin
+      Result := OriginalSkills[I];
+      Exit;
+    end;
+  end;
+end;
+
 { TSkill }
 
-constructor TSkill.Create(_Id, _Level, _PreReqStat : Integer);
+constructor TSkill.Create(_Id, _Level : Integer);
 begin
   Id := _Id;
   Level := _Level;
-  PreReqStat := _PreReqStat;
 end;
 
 constructor TSkill.CopyFromTemplate(_Id, Lvl: Integer);
