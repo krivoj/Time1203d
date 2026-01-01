@@ -164,24 +164,24 @@ initialization
   for I := 0 to OriginalSkills.Count -1 do
   begin
     case OriginalSkills[I].Id of
-      SKILL_RUN: OriginalSkills[I].PreReqStat := STAT_SPEED;
-      SKILL_PASS_LOW: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
-      SKILL_PASS_HIGH: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
-      SKILL_HEADER: OriginalSkills[I].PreReqStat := STAT_STRENGTH;
-      SKILL_SHOT_POWER: OriginalSkills[I].PreReqStat := STAT_STRENGTH;
-      SKILL_SHOT_ACCURACY: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
-      SKILL_DRIBBLE: OriginalSkills[I].PreReqStat := STAT_AGILITY;
-      SKILL_CROSS_DRIVEN: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
-      SKILL_CROSS_LOFTED: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
-      SKILL_TACKLE: OriginalSkills[I].PreReqStat := STAT_STRENGTH;
-      SKILL_BALL_CONTROL: OriginalSkills[I].PreReqStat := STAT_AGILITY;
-      SKILL_INTERCEPTION: OriginalSkills[I].PreReqStat := STAT_INTUITION;
-      SKILL_SAVE_LOW: OriginalSkills[I].PreReqStat := STAT_INTUITION;
-      SKILL_SAVE_HIGH: OriginalSkills[I].PreReqStat := STAT_AGILITY;
+      SKILL_RUN: OriginalSkills[I].PreReqStat             := STAT_SPEED;
+      SKILL_PASS_LOW: OriginalSkills[I].PreReqStat        := STAT_TECHNIQUE;
+      SKILL_PASS_HIGH: OriginalSkills[I].PreReqStat       := STAT_TECHNIQUE;
+      SKILL_HEADER: OriginalSkills[I].PreReqStat          := STAT_STRENGTH;
+      SKILL_SHOT_POWER: OriginalSkills[I].PreReqStat      := STAT_STRENGTH;
+      SKILL_SHOT_ACCURACY: OriginalSkills[I].PreReqStat   := STAT_TECHNIQUE;
+      SKILL_DRIBBLE: OriginalSkills[I].PreReqStat         := STAT_AGILITY;
+      SKILL_CROSS_DRIVEN: OriginalSkills[I].PreReqStat    := STAT_TECHNIQUE;
+      SKILL_CROSS_LOFTED: OriginalSkills[I].PreReqStat    := STAT_TECHNIQUE;
+      SKILL_TACKLE: OriginalSkills[I].PreReqStat          := STAT_STRENGTH;
+      SKILL_BALL_CONTROL: OriginalSkills[I].PreReqStat    := STAT_AGILITY;
+      SKILL_INTERCEPTION: OriginalSkills[I].PreReqStat    := STAT_INTUITION;
+      SKILL_SAVE_LOW: OriginalSkills[I].PreReqStat        := STAT_INTUITION;
+      SKILL_SAVE_HIGH: OriginalSkills[I].PreReqStat       := STAT_AGILITY;
       SKILL_GOALKEEPER_RUSH: OriginalSkills[I].PreReqStat := STAT_SPEED;
-      SKILL_ONE_ON_ONE: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
-      SKILL_SHOT_BLOCK: OriginalSkills[I].PreReqStat := STAT_INTUITION;
-      SKILL_REACTION: OriginalSkills[I].PreReqStat := STAT_INTUITION;
+      SKILL_ONE_ON_ONE: OriginalSkills[I].PreReqStat      := STAT_TECHNIQUE;
+      SKILL_SHOT_BLOCK: OriginalSkills[I].PreReqStat      := STAT_INTUITION;
+      SKILL_REACTION: OriginalSkills[I].PreReqStat        := STAT_AGILITY;
     end;
   end;
 
