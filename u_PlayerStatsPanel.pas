@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.UITypes, System.Types, Math, u_Systemutils, u_Localization,
-  u_PlayerTemplates, u_Types, u_core, u_traits,
+  u_PlayerTemplates, u_Types, u_core, u_Skills, u_Lang,
   FMX.Types, FMX.Controls, FMX.Objects, FMX.Graphics, FMX.Layouts, FMX.StdCtrls;
 
 type
@@ -19,8 +19,8 @@ type
     procedure AddStatRow(const StatName: string; Index: Integer);
     procedure ValueRectClick(Sender: TObject);
   public
-    constructor Create(AOwner: TComponent; const Names: ArrayStatNames);
-    procedure BuildFromPlayer(const Names: ArrayStatNames; const APlayer: TPlayer);
+    constructor Create(AOwner: TComponent);
+    procedure BuildFromPlayer( const APlayer: TPlayer);
     destructor Destroy; override;
   end;
 
@@ -28,7 +28,7 @@ implementation
 
 {---------------------------------------------}
 
-constructor TPlayerStatsPanel.Create(AOwner: TComponent; const Names: ArrayStatNames);
+constructor TPlayerStatsPanel.Create(AOwner: TComponent);
 var
   i: Integer;
   HeaderBg: TRectangle;
@@ -97,11 +97,10 @@ begin
   FInnerLayout.HitTest := True;
 
   // CREO TUTTE LE RIGHE con nomi fissi
-  SetLength(FRows, Length(Names));
-  for i := High(Names) downto Low(Names) do
+  SetLength(FRows, 5);
+  for i := High(STAT_NAMES) downto Low(STAT_NAMES) do
   begin
-    AStat := Capitalize(u_localization.Translate(Names[i]));
-    AddStatRow(AStat, i);
+    AddStatRow(L(STAT_NAMES[I]^), i);
   end;
 
   // ---- ATTRIBUTI EXTRA NON STAT ----
@@ -247,7 +246,32 @@ begin
   ValLbl.TextSettings.Font.Style := [TFontStyle.fsBold];
   ValLbl.StyledSettings := [];
 
-  BarBg := TRectangle.Create(Row);
+end;
+
+{---------------------------------------------}
+procedure TPlayerStatsPanel.ValueRectClick(Sender: TObject);
+begin
+  // Gestione click
+end;
+
+{---------------------------------------------}
+procedure TPlayerStatsPanel.BuildFromPlayer( const APlayer: TPlayer);
+var
+  i: Integer;
+  Row: TLayout;
+  BarBg, BarFill, ValueRect: TRectangle;
+  ValLbl: TLabel;
+begin
+  FHeaderName.Text := APlayer.FName + APlayer.Surname + sLineBreak + IntToStr(APlayer.Age);
+  if FileExists(DirAssets + 'c' + IntToStr(APlayer.Country) + '.png') then
+    FHeaderFlag.Bitmap.LoadFromFile(DirAssets + 'c' + IntToStr(APlayer.Country) + '.png')
+  else
+    FHeaderFlag.Bitmap.Clear(TAlphaColorRec.Null);
+
+// XP   BarBg := Row.Controls[2] as TRectangle;
+//    BarFill := BarBg.Controls[0] as TRectangle;
+//    BarFill.Width := BarBg.Width * APlayer.xp / 120;
+{  BarBg := TRectangle.Create(Row);
   BarBg.Parent := Row;
   BarBg.Width := Row.Width - Lbl.Width - ValueRect.Width - 65;
   BarBg.Height := BarHeight;
@@ -265,64 +289,15 @@ begin
   BarFill.Fill.Color := TAlphaColorRec.Skyblue;
   BarFill.XRadius := BarHeight / 2;
   BarFill.YRadius := BarHeight / 2;
-  BarFill.Margins.Rect := TRectF.Create(0, 0, 0, 0);
-end;
+  BarFill.Margins.Rect := TRectF.Create(0, 0, 0, 0); }
 
-{---------------------------------------------}
-procedure TPlayerStatsPanel.ValueRectClick(Sender: TObject);
-begin
-  // Gestione click
-end;
 
-{---------------------------------------------}
-procedure TPlayerStatsPanel.BuildFromPlayer(const Names: ArrayStatNames; const APlayer: TPlayer);
-var
-  i: Integer;
-  Row: TLayout;
-  BarBg, BarFill, ValueRect: TRectangle;
-  ValLbl: TLabel;
-begin
-  FHeaderName.Text := APlayer.FName + APlayer.FSurname + sLineBreak + IntToStr(APlayer.Age);
-  if FileExists(DirAssets + 'c' + IntToStr(APlayer.FCountry) + '.png') then
-    FHeaderFlag.Bitmap.LoadFromFile(DirAssets + 'c' + IntToStr(APlayer.FCountry) + '.png')
-  else
-    FHeaderFlag.Bitmap.Clear(TAlphaColorRec.Null);
-
-  for i := Low(Names) to High(Names) do
+  for i := Low(STAT_NAMES) to High(STAT_NAMES) do
   begin
     Row := FRows[i];
-    BarBg := Row.Controls[2] as TRectangle;
-    BarFill := BarBg.Controls[0] as TRectangle;
-    BarFill.Width := BarBg.Width * APlayer.FxpStats[i] / 120;
-
     ValueRect := Row.Controls[1] as TRectangle;
     ValLbl := ValueRect.Controls[0] as TLabel;
-    ValLbl.Text := APlayer.FStats[i].ToString;
-
-    if i <> Speed then
-    begin
-      if APlayer.FStats[i] > 18 then
-        ValueRect.Fill.Color := TAlphaColorRec.Aqua
-      else if APlayer.FStats[i] > 12 then
-        ValueRect.Fill.Color := TAlphaColorRec.Lightgreen
-      else if APlayer.FStats[i] > 9 then
-        ValueRect.Fill.Color := TAlphaColorRec.Khaki
-      else
-        ValueRect.Fill.Color := TAlphaColorRec.Indianred;
-    end
-    else
-    begin
-      if APlayer.FStats[i] > 3 then
-        ValueRect.Fill.Color := TAlphaColorRec.Aqua
-      else if APlayer.FStats[i] > 2 then
-        ValueRect.Fill.Color := TAlphaColorRec.Lightgreen
-      else if APlayer.FStats[i] > 1 then
-        ValueRect.Fill.Color := TAlphaColorRec.Khaki
-      else
-        ValueRect.Fill.Color := TAlphaColorRec.Indianred;
-    end;
-
-    BarBg.Position.Y := (Row.Height - BarBg.Height) / 2;
+    ValLbl.Text := APlayer.Stats[i].ToString;
   end;
 
   // Attributi extra

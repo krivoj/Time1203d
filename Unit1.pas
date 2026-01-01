@@ -9,7 +9,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FMX.Types3D,FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,System.IOUtils,
-  FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Traits, u_PlayerStatsPanel;
+  FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Skills, u_PlayerStatsPanel;
 
 Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
 Type TGameScreen = (gsFormation, gsMatch, gsSubs, gsTactics, gsMarket, gsStandings );
@@ -154,12 +154,8 @@ begin
       StartTilePos := Point ( CellX, CellY );
       StartPoint3DPos :=  SelectedPlayer.FPlayerModel.FModel.Position.Point;
       MouseStatus := Ms_Waiting_For_Destination_Cell;
-      if SelectedPlayer.HasTrait (TRAIT_GOALKEEPER) then begin
-        Grid[2].HighlightCell(0,5);
-      end
-      else begin
-        Grid[2].HighlightFormationsCols;
-      end;
+      Grid[2].HighlightCell(0,5);
+      Grid[2].HighlightFormationsCols;
 
     end
     else if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_Waiting_For_Destination_Cell) then begin
@@ -201,7 +197,7 @@ begin
   if APlayer = Nil then exit;
 
   PlayerStatsPanel.Tag := APlayer.FGuid;
-  PlayerStatsPanel.BuildFromPlayer(StatNames, APlayer);
+  PlayerStatsPanel.BuildFromPlayer(APlayer);
   PlayerStatsPanel.Visible := True;
   PlayerStatsPanel.BringToFront ;
 
@@ -273,7 +269,7 @@ var
   FieldBitmap: TBitmap;
 begin
   // Nascondi menu
-  PlayerStatsPanel := TPlayerStatsPanel.Create(Viewport3d1, StatNames);
+  PlayerStatsPanel := TPlayerStatsPanel.Create(Viewport3d1);
   PlayerStatsPanel.Parent := Form1;
   PlayerStatsPanel.Visible := False;
 
@@ -327,7 +323,7 @@ begin
 
 
   PlayerStatsPanel.Visible := True;
-  PlayerStatsPanel.BuildFromPlayer(StatNames, Players[0]);
+  PlayerStatsPanel.BuildFromPlayer(Players[0]);
 end;
 procedure TForm1.BtnNewGameClick(Sender: TObject);
 var
@@ -393,7 +389,7 @@ begin
                                     nil, nil,
                                     0,
                                     0,
-                                    I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].SeasonPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.DefaultStat , ABasePlayer.Traits );
+                                    I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].SeasonPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.Stat , ABasePlayer.Skills );
 
     if I < 10 then begin
       TmpPlayer.CellX := 0;
@@ -404,7 +400,7 @@ begin
       TmpPlayer.CellY := I-11;
     end;
 
-    if TmpPlayer.HasTrait (TRAIT_GOALKEEPER) then
+    If ( TmpPlayer.CellX = 0 ) and ( TmpPlayer.CellY = 5 ) then
       FinalTexture := FTextureGK
       else FinalTexture:= FTexture0;
 
@@ -412,13 +408,14 @@ begin
                                     BaseModel, FinalTexture,
                                     Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.X,
                                     Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y,
-                                    TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].SeasonPlayed, '', ABasePlayer.Surname , ABasePlayer.DefaultStat , ABasePlayer.Traits );
+                                    TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].SeasonPlayed, '', ABasePlayer.Surname , ABasePlayer.Stat , ABasePlayer.Skills );
 
-    Players[i].FCountry := RndGenerate(6);
-    FillRandomXp ( Players[I].FxpStats );
+    Players[i].Country := RndGenerate(6);
     Players[I].FGridIndex := Grid[2].FGridIndex;
     Players[I].CellX := TmpPlayer.CellX;
     Players[I].CellY := TmpPlayer.CellY;
+
+
     TmpPlayer.Free; // libero il player temporaneo (quello senza FModel)
 
   end;

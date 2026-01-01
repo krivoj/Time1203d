@@ -34,9 +34,9 @@ type
 // Variabili stringhe - SKILL CALCIO
 // -----------------------------------------------------------------------------
 var
+  STR_STAT_SPEED: TLangArray;       // Velocità
   STR_STAT_STRENGTH: TLangArray;    // Forza
   STR_STAT_TECHNIQUE: TLangArray;   // Tecnica
-  STR_STAT_SPEED: TLangArray;       // Velocità
   STR_STAT_AGILITY: TLangArray;     // Agilità
   STR_STAT_INTUITION: TLangArray;   // Intuito
 
@@ -57,7 +57,7 @@ var
   STR_SKILL_SAVE_LOW: TLangArray;
   STR_SKILL_SAVE_HIGH: TLangArray;
   STR_SKILL_GOALKEEPER_RUSH: TLangArray;
-  STR_SKILL_ONE_ON_ONE: TLangArray; // Portiere
+  STR_SKILL_THROUGH_PASS: TLangArray; // Portiere
   STR_SKILL_SHOT_BLOCK: TLangArray;
   STR_SKILL_REACTION: TLangArray;
   CurrentLang: TLang = lgIT;
@@ -217,12 +217,12 @@ initialization
   STR_SKILL_GOALKEEPER_RUSH[lgES] := 'Salida del portero';
   STR_SKILL_GOALKEEPER_RUSH[lgRU] := 'Выход вратаря';
 
-  STR_SKILL_ONE_ON_ONE[lgIT] := 'Uno contro uno';
-  STR_SKILL_ONE_ON_ONE[lgEN] := 'One-on-One';
-  STR_SKILL_ONE_ON_ONE[lgFR] := 'Un contre un';
-  STR_SKILL_ONE_ON_ONE[lgDE] := 'Eins gegen eins';
-  STR_SKILL_ONE_ON_ONE[lgES] := 'Uno contra uno';
-  STR_SKILL_ONE_ON_ONE[lgRU] := 'Один на один';
+  STR_SKILL_THROUGH_PASS[lgIT] := 'Passaggio filtrante';
+  STR_SKILL_THROUGH_PASS[lgEN] := 'Through Pass';
+  STR_SKILL_THROUGH_PASS[lgFR] := 'Passe en profondeur';
+  STR_SKILL_THROUGH_PASS[lgDE] := 'Steilpass';
+  STR_SKILL_THROUGH_PASS[lgES] := 'Pase en profundidad';
+  STR_SKILL_THROUGH_PASS[lgRU] := 'Проникающий пас';
 
   STR_SKILL_SHOT_BLOCK[lgIT] := 'Blocco del tiro';
   STR_SKILL_SHOT_BLOCK[lgEN] := 'Shot Block';

@@ -2,7 +2,7 @@ unit u_Core;
 
 interface
 uses
-u_PlayerModel, FMX.Viewport3D, system.Classes,FMX.MaterialSources, u_Types,FMX.Objects3D, u_Traits;
+u_PlayerModel, FMX.Viewport3D, system.Classes,FMX.MaterialSources, System.Generics.Collections, u_Types,FMX.Objects3D, u_Skills;
 
 type
   TPlayer = class
@@ -16,10 +16,12 @@ type
   public
     FGuid: Integer;
     FAge: Integer;
-    FCountry: integer;
+    Country: integer;
     FTeam: Integer;
     FGuidTeam: Integer;
     FSeasonPlayed: Integer;
+    Skills: TObjectList<Tskill>;
+
     FPlayerModel: TPlayerModel;
     FGridIndex: Integer;
     FDefaultCellX: Integer;
@@ -29,19 +31,18 @@ type
     FName, FSurname: string;
     FStamina: SmallInt;
     FDefaultStats: ArrayStats;
-    FStats: ArrayStats;
-    FxpStats: ArrayStats;
-    FTraits: ArrayTraits;
+    Stats: ArrayStats;
+    xp: integer;
     FConditioning: Integer;
     FInjuryResistance: Integer;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel : TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
-                       const AGuid, ATeam, AGuidTeam, ASeasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
+                       const AGuid, ATeam, AGuidTeam, ASeasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rSkills : TObjectList<TSkill>
                        );
 
     destructor Destroy; override;
     procedure SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
-    function HasTrait ( Trait: Integer ): boolean;
+    function HasSkill ( SkillId, Lvl: Integer ): boolean;
 
     property CellX: integer read FCellX write FCellX;
     property CellY: integer read FCellY write FCellY;
@@ -62,10 +63,8 @@ var
   i: integer;
 begin
   Result := false;
-  If SelectedPlayer.HasTrait( TRAIT_GOALKEEPER ) then begin
-    if (CellX = 0)  and (CellY = 5) then begin
-      Result:= True;
-    end;
+  if (CellX = 0)  and (CellY = 5) then begin
+    Result:= True;
   end
   else begin
     for I := Low(FormationCols) to High(FormationCols) do begin
@@ -86,19 +85,20 @@ begin
 end;
 constructor TPlayer.Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel: TModel3D; const ATexture: TTextureMaterialSource;
                        InitX, InitY: Single;
-                       const AGuid, ATeam, AGuidTeam, AseasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rTraits : ArrayTraits
+                       const AGuid, ATeam, AGuidTeam, AseasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rSkills : TObjectList<TSkill>
                        );
 begin
   if BaseModel <> nil then
     FPlayerModel := TPlayerModel.Create(AOwner,AViewPort,BaseModel,ATexture,InitX,InitY);
+
+    Skills:= rSkills;
     FGuid:= AGuid;
     FTeam := ATeam;
     FGuidTeam:= AGuidTeam;
     FSeasonPlayed := ASeasonPlayed;
     FSurname:= ASurname;
     FDefaultStats := rStats;
-    FStats := rStats;
-    FTraits := rTraits;
+    Stats := rStats;
 
 end;
 
@@ -142,13 +142,13 @@ begin
   FDefaultCellX := AGridCell.CellX;
   FDefaultCellY := AGridCell.CellY;
 end;
-function TPlayer.HasTrait ( Trait: Integer ): boolean;
+function TPlayer.HasSkill ( SkillId, Lvl: Integer ): boolean;
 var
   i: Integer;
 begin
   result := false;
-  for I := Low(FTraits) to High(FTraits) do begin
-    if FTraits[i] = Trait then begin
+  for I := 0 to Skills.Count -1 do begin
+    if (Skills[i].Id = SkillId) and (Skills[i].Level >= Lvl) then begin
       result := True;
       Exit;
     end;

@@ -36,7 +36,7 @@ const
   SKILL_SAVE_LOW         = 12;
   SKILL_SAVE_HIGH        = 13;
   SKILL_GOALKEEPER_RUSH  = 14;
-  SKILL_ONE_ON_ONE       = 15;
+  SKILL_THROUGH_PASS     = 15;
   SKILL_SHOT_BLOCK       = 16;
   SKILL_REACTION         = 17;
 
@@ -72,7 +72,7 @@ const
     @STR_SKILL_SAVE_LOW,
     @STR_SKILL_SAVE_HIGH,
     @STR_SKILL_GOALKEEPER_RUSH,
-    @STR_SKILL_ONE_ON_ONE,
+    @STR_SKILL_THROUGH_PASS,
     @STR_SKILL_SHOT_BLOCK,
     @STR_SKILL_REACTION
   );
@@ -157,7 +157,7 @@ initialization
   for SkillId := 0 to SKILL_COUNT - 1 do
     for Lvl := 1 to 5 do
       OriginalSkills.Add(
-        TSkill.Create(SkillId, Lvl, 0 )
+        TSkill.Create(SkillId, Lvl)
       );
 
   // Setto la prereqStat
@@ -179,7 +179,7 @@ initialization
       SKILL_SAVE_LOW: OriginalSkills[I].PreReqStat        := STAT_INTUITION;
       SKILL_SAVE_HIGH: OriginalSkills[I].PreReqStat       := STAT_AGILITY;
       SKILL_GOALKEEPER_RUSH: OriginalSkills[I].PreReqStat := STAT_SPEED;
-      SKILL_ONE_ON_ONE: OriginalSkills[I].PreReqStat      := STAT_TECHNIQUE;
+      SKILL_THROUGH_PASS: OriginalSkills[I].PreReqStat    := STAT_TECHNIQUE;
       SKILL_SHOT_BLOCK: OriginalSkills[I].PreReqStat      := STAT_INTUITION;
       SKILL_REACTION: OriginalSkills[I].PreReqStat        := STAT_AGILITY;
     end;

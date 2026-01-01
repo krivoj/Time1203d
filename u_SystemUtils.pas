@@ -7,7 +7,6 @@ uses
 function GetLocalAppDataPath: string;
 Function Capitalize ( aString : string  ): String;
 procedure ModifyPixels(const Bitmap: TBitmap; Color1From, Color1To,Color2From, Color2To,Color3From, Color3To: TAlphaColor );
-procedure FillRandomXp ( var xpArray: ArrayStats );
 implementation
 var
   Path: array[0..MAX_PATH] of Char;
@@ -52,12 +51,5 @@ begin
   finally
     Bitmap.Unmap(Data);
   end;
-end;
-procedure FillRandomXp ( var xpArray: ArrayStats );
-var
-  i: integer;
-begin
-  for I := Low(xpArray) to High(xpArray) do
-    xpArray[i] := RndGenerate(120);
 end;
 end.

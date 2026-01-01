@@ -1,7 +1,7 @@
 unit u_PlayerTemplates;
 
 interface
-uses U_Types, U_Traits, U_Skills, System.Generics.Collections;
+uses U_Types, U_Skills, System.Generics.Collections;
 
   Type PlayerTemplate = record
     Surname : string;
@@ -42,35 +42,23 @@ initialization;
   end;
 
   Templates[0].Surname := 'gk difesa';      // importante elemento 0
+  Templates[0].Skills.add ( GetOriginalSkill ( SKILL_RUN, 5 ));
+  Templates[0].Skills.add ( GetOriginalSkill ( SKILL_PASS_LOW, 5 ));
+  Templates[0].Skills.add ( GetOriginalSkill ( SKILL_PASS_HIGH, 5 ));
+  Templates[0].Skills.add ( GetOriginalSkill ( SKILL_SAVE_LOW, 5 ));
+  Templates[0].Skills.add ( GetOriginalSkill ( SKILL_SAVE_HIGH, 5 ));
+  Templates[0].Skills.add ( GetOriginalSkill ( SKILL_GOALKEEPER_RUSH, 5 ));
 
   Templates[1].Surname := 'gk passaggi e rushing out';
+  Templates[1].Skills.add ( GetOriginalSkill ( SKILL_RUN, 5 ));
+  Templates[1].Skills.add ( GetOriginalSkill ( SKILL_PASS_LOW, 5 ));
+  Templates[1].Skills.add ( GetOriginalSkill ( SKILL_PASS_HIGH, 5 ));
+  Templates[1].Skills.add ( GetOriginalSkill ( SKILL_SAVE_LOW, 5 ));
+  Templates[1].Skills.add ( GetOriginalSkill ( SKILL_SAVE_HIGH, 5 ));
+  Templates[1].Skills.add ( GetOriginalSkill ( SKILL_GOALKEEPER_RUSH, 5 ));
 
-  // 2 difensore che imposta -bravery -tackling -marking +passing +technique -heading -intuition +agility  +ballcontrol -strenght
-  // 3 difensore senza fronzoli +bravery +tackling +marking -passing -technique +heading -intuition -agility  -ballcontrol +strenght
-  // 4 difensore marcatura  +tackling +marking -passing -technique +intuiton
-  // 5 difensore pressing   +bravery +strenght +tackling -passing -technique -heading
-  // 6 libero               +intuition +passing -strenght +technique  +ballcontrol  -marking
-  // 7 terzino difesa       -cross -passing +bravery +tackling +marking -heading -ballcontrol
-  // 8 terzino fluidificante +cross +passing -bravery -tackling -marking -heading +ballcontrol
-  //   centrocampisti bravery tackling passing ballcontrol strenght intuition ballcontrol heading ----------------------------------------------
-  // 9 incontrista +bravery +tackling +strenght -passing -ballcontrol -technique
-  // 10 regista     -bravery -tackling +passing ballcontrol +technique -strenght -heading
-  // 11 ccq         + determination +strenght +heading -shot -intuition +ballcontrol -technque
-  // 12  mezzala    +intuition +shot +technique -bravery -tackling -marking -ballcontrol
-  // 13  ala invertita  -cross +ballcontrol +passing
-  // 14  ala     +cross -passing
-  // 15  cel,ced +tackling +intuition -cross -shot
-  // attaccanti
-  // 16  uomo area          -cross -heading +shot +technique +agility -bravery -strenght +ballcontrol
-  // 17  centravanti        -cross +heading +bravery +strengh
-  // 18  seconda punta      -cross +shot +ballcontrol +intuition  +passing
-  // 19  attacante esterno  -cross +ballcontrol +shot  -passing  -heading
-  // 20  fulcro del gioco  -cross +passing -shot +ballcontrol +heading
-  // 21  regista avanzato  -cross +passing +shot +ballcontrol +technique +agility -bravery -heading
 
-  // 2 difensore che imposta -bravery -tackling -marking +passing +technique -heading -intuition +agility  +ballcontrol -strenght
   Templates[2].Surname := 'difensore che imposta';
-
   Templates[2].Skills.add ( GetOriginalSkill ( SKILL_RUN, 5 ));
   Templates[2].Skills.add ( GetOriginalSkill ( SKILL_PASS_LOW, 5 ));
   Templates[2].Skills.add ( GetOriginalSkill ( SKILL_SHOT_BLOCK, 5 ));
@@ -227,7 +215,7 @@ initialization;
   Templates[21].Surname := 'regista avanzato ';
   Templates[21].Skills.add ( GetOriginalSkill ( SKILL_RUN, 5 ));
   Templates[21].Skills.add ( GetOriginalSkill ( SKILL_PASS_LOW, 5 ));
-  Templates[21].Skills.add ( GetOriginalSkill ( SKILL_REACTION, 5 ));
+  Templates[21].Skills.add ( GetOriginalSkill ( SKILL_THROUGH_PASS, 5 ));
   Templates[21].Skills.add ( GetOriginalSkill ( SKILL_BALL_CONTROL, 5 ));
   Templates[21].Skills.add ( GetOriginalSkill ( SKILL_DRIBBLE, 5 ));
   Templates[21].Skills.add ( GetOriginalSkill ( SKILL_SHOT_ACCURACY, 5 ));
