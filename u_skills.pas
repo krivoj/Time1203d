@@ -8,9 +8,9 @@ uses
 
   const
 
-    STAT_STRENGTH         = 0;
-    STAT_TECHNIQUE        = 1;
-    STAT_SPEED            = 2;
+    STAT_SPEED            = 0;
+    STAT_STRENGTH         = 1;
+    STAT_TECHNIQUE        = 2;
     STAT_AGILITY          = 3;
     STAT_INTUITION        = 4;
 
@@ -33,15 +33,14 @@ const
   SKILL_TACKLE           = 9;
   SKILL_BALL_CONTROL     = 10;
   SKILL_INTERCEPTION     = 11;
-  SKILL_FREE_KICK        = 12;
-  SKILL_PENALTY          = 13;
-  SKILL_SAVE_LOW         = 14;
-  SKILL_SAVE_HIGH        = 15;
-  SKILL_GOALKEEPER_RUSH  = 16;
-  SKILL_ONE_ON_ONE       = 17;
-  SKILL_SHOT_BLOCK       = 18;
+  SKILL_SAVE_LOW         = 12;
+  SKILL_SAVE_HIGH        = 13;
+  SKILL_GOALKEEPER_RUSH  = 14;
+  SKILL_ONE_ON_ONE       = 15;
+  SKILL_SHOT_BLOCK       = 16;
+  SKILL_REACTION         = 17;
 
-  SKILL_COUNT = 19;
+  SKILL_COUNT = 18;
 
 
 // -----------------------------------------------------------------------------
@@ -49,9 +48,9 @@ const
 // -----------------------------------------------------------------------------
 const
   STAT_NAMES: array[0..STAT_COUNT - 1] of ^TLangArray = (
+    @STR_STAT_SPEED,
     @STR_STAT_STRENGTH,
     @STR_STAT_TECHNIQUE,
-    @STR_STAT_SPEED,
     @STR_STAT_AGILITY,
     @STR_STAT_INTUITION
   );
@@ -70,13 +69,12 @@ const
     @STR_SKILL_TACKLE,
     @STR_SKILL_BALL_CONTROL,
     @STR_SKILL_INTERCEPTION,
-    @STR_SKILL_FREE_KICK,
-    @STR_SKILL_PENALTY,
     @STR_SKILL_SAVE_LOW,
     @STR_SKILL_SAVE_HIGH,
     @STR_SKILL_GOALKEEPER_RUSH,
     @STR_SKILL_ONE_ON_ONE,
-    @STR_SKILL_SHOT_BLOCK
+    @STR_SKILL_SHOT_BLOCK,
+    @STR_SKILL_REACTION
   );
 
 type
@@ -84,11 +82,10 @@ type
   public
     Id: Integer;
     Level: Integer;
-    PreReqStat1: Integer;
-    PreReqStat1Value: Integer;
+    PreReqStat: Integer;
 
-    constructor Create(_Id, _Level, _PreReqStat1, _PreReqStat1Value: Integer); overload;
-    constructor CreateFromTemplate(_Id: Integer); overload;
+    constructor Create(_Id, _Level, _PreReqStat : Integer); overload;
+    constructor CopyFromTemplate(_Id, Lvl: Integer); overload;
 
     function GetName: string;
   end;
@@ -104,18 +101,17 @@ var
   OriginalSkills: TObjectList<TSkill>;
   SkillId: Integer;
   Lvl: Integer;
-
+  I: integer;
 { TSkill }
 
-constructor TSkill.Create(_Id, _Level, _PreReqStat1, _PreReqStat1Value: Integer);
+constructor TSkill.Create(_Id, _Level, _PreReqStat : Integer);
 begin
   Id := _Id;
   Level := _Level;
-  PreReqStat1 := _PreReqStat1;
-  PreReqStat1Value := _PreReqStat1Value;
+  PreReqStat := _PreReqStat;
 end;
 
-constructor TSkill.CreateFromTemplate(_Id: Integer);
+constructor TSkill.CopyFromTemplate(_Id, Lvl: Integer);
 var
   i: Integer;
   S: TSkill;
@@ -123,12 +119,11 @@ begin
   for i := 0 to OriginalSkills.Count - 1 do
   begin
     S := OriginalSkills[i];
-    if S.Id = _Id then
+    if (S.Id = _Id) and (S.Level= Lvl) then
     begin
       Id := S.Id;
       Level := S.Level;
-      PreReqStat1 := S.PreReqStat1;
-      PreReqStat1Value := S.PreReqStat1Value;
+      PreReqStat := S.PreReqStat;
       Exit;
     end;
   end;
@@ -150,8 +145,40 @@ initialization
   for SkillId := 0 to SKILL_COUNT - 1 do
     for Lvl := 1 to 5 do
       OriginalSkills.Add(
-        TSkill.Create(SkillId, Lvl, 0, 0)
+        TSkill.Create(SkillId, Lvl, 0 )
       );
+
+  // Setto la prereqStat
+  for I := 0 to OriginalSkills.Count -1 do
+  begin
+    case OriginalSkills[I].Id of
+      SKILL_RUN: OriginalSkills[I].PreReqStat := STAT_SPEED;
+      SKILL_PASS_LOW: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
+      SKILL_PASS_HIGH: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
+      SKILL_HEADER: OriginalSkills[I].PreReqStat := STAT_STRENGTH;
+      SKILL_SHOT_POWER: OriginalSkills[I].PreReqStat := STAT_STRENGTH;
+      SKILL_SHOT_ACCURACY: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
+      SKILL_DRIBBLE: OriginalSkills[I].PreReqStat := STAT_AGILITY;
+      SKILL_CROSS_DRIVEN: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
+      SKILL_CROSS_LOFTED: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
+      SKILL_TACKLE: OriginalSkills[I].PreReqStat := STAT_STRENGTH;
+      SKILL_BALL_CONTROL: OriginalSkills[I].PreReqStat := STAT_AGILITY;
+      SKILL_INTERCEPTION: OriginalSkills[I].PreReqStat := STAT_INTUITION;
+      SKILL_SAVE_LOW: OriginalSkills[I].PreReqStat := STAT_INTUITION;
+      SKILL_SAVE_HIGH: OriginalSkills[I].PreReqStat := STAT_AGILITY;
+      SKILL_GOALKEEPER_RUSH: OriginalSkills[I].PreReqStat := STAT_SPEED;
+      SKILL_ONE_ON_ONE: OriginalSkills[I].PreReqStat := STAT_TECHNIQUE;
+      SKILL_SHOT_BLOCK: OriginalSkills[I].PreReqStat := STAT_INTUITION;
+      SKILL_REACTION: OriginalSkills[I].PreReqStat := STAT_INTUITION;
+    end;
+  end;
+
+{    STAT_SPEED            = 0;
+    STAT_STRENGTH         = 1;
+    STAT_TECHNIQUE        = 2;
+    STAT_AGILITY          = 3;
+    STAT_INTUITION        = 4; }
+
 
 finalization
   OriginalSkills.Free;

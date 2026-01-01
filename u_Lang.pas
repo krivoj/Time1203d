@@ -59,6 +59,7 @@ var
   STR_SKILL_GOALKEEPER_RUSH: TLangArray;
   STR_SKILL_ONE_ON_ONE: TLangArray; // Portiere
   STR_SKILL_SHOT_BLOCK: TLangArray;
+  STR_SKILL_REACTION: TLangArray;
   CurrentLang: TLang = lgIT;
 
 // -----------------------------------------------------------------------------
@@ -195,20 +196,6 @@ initialization
   STR_SKILL_INTERCEPTION[lgES] := 'Intercepción';
   STR_SKILL_INTERCEPTION[lgRU] := 'Перехват';
 
-  STR_SKILL_FREE_KICK[lgIT] := 'Punizioni';
-  STR_SKILL_FREE_KICK[lgEN] := 'Free Kicks';
-  STR_SKILL_FREE_KICK[lgFR] := 'Coups francs';
-  STR_SKILL_FREE_KICK[lgDE] := 'Freistöße';
-  STR_SKILL_FREE_KICK[lgES] := 'Tiros libres';
-  STR_SKILL_FREE_KICK[lgRU] := 'Штрафные';
-
-  STR_SKILL_PENALTY[lgIT] := 'Rigori';
-  STR_SKILL_PENALTY[lgEN] := 'Penalties';
-  STR_SKILL_PENALTY[lgFR] := 'Penalty';
-  STR_SKILL_PENALTY[lgDE] := 'Elfmeter';
-  STR_SKILL_PENALTY[lgES] := 'Penaltis';
-  STR_SKILL_PENALTY[lgRU] := 'Пенальти';
-
   STR_SKILL_SAVE_LOW[lgIT] := 'Parata bassa';
   STR_SKILL_SAVE_LOW[lgEN] := 'Low Save';
   STR_SKILL_SAVE_LOW[lgFR] := 'Arrêt bas';
@@ -243,6 +230,13 @@ initialization
   STR_SKILL_SHOT_BLOCK[lgDE] := 'Schussblock';
   STR_SKILL_SHOT_BLOCK[lgES] := 'Bloqueo de tiro';
   STR_SKILL_SHOT_BLOCK[lgRU] := 'Блок удара';
+
+  STR_SKILL_REACTION[lgIT] := 'Reazione';
+  STR_SKILL_REACTION[lgEN] := 'Reaction';
+  STR_SKILL_REACTION[lgFR] := 'Réaction';
+  STR_SKILL_REACTION[lgDE] := 'Reaktion';
+  STR_SKILL_REACTION[lgES] := 'Reacción';
+  STR_SKILL_REACTION[lgRU] := 'Реакция';
 
 end.
 
