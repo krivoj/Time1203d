@@ -34,6 +34,8 @@ type
 // Variabili stringhe - SKILL CALCIO
 // -----------------------------------------------------------------------------
 var
+  STR_ATTRIBUTES, STR_SKILLS: TLangArray;
+
   STR_STAT_SPEED: TLangArray;       // Velocità
   STR_STAT_STRENGTH: TLangArray;    // Forza
   STR_STAT_TECHNIQUE: TLangArray;   // Tecnica
@@ -75,6 +77,21 @@ begin
 end;
 
 initialization
+  STR_ATTRIBUTES[lgIT] := 'Attributi';
+  STR_ATTRIBUTES[lgEN] := 'Attributes';
+  STR_ATTRIBUTES[lgFR] := 'Attributs';
+  STR_ATTRIBUTES[lgDE] := 'Attribute';
+  STR_ATTRIBUTES[lgES] := 'Atributos';
+  STR_ATTRIBUTES[lgRU] := 'Атрибуты';
+
+  STR_SKILLS[lgIT] := 'Abilità';
+  STR_SKILLS[lgEN] := 'Skills';
+  STR_SKILLS[lgFR] := 'Compétences';
+  STR_SKILLS[lgDE] := 'Fertigkeiten';
+  STR_SKILLS[lgES] := 'Habilidades';
+  STR_SKILLS[lgRU] := 'Навыки';
+
+
   STR_STAT_STRENGTH[lgIT] := 'Forza';
   STR_STAT_STRENGTH[lgEN] := 'Strength';
   STR_STAT_STRENGTH[lgFR] := 'Force';

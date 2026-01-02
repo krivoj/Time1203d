@@ -392,17 +392,21 @@ begin
                                     I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].SeasonPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.Stat , ABasePlayer.Skills );
 
     if I < 10 then begin
-      TmpPlayer.CellX := 0;
-      TmpPlayer.CellY := I;
+      TmpPlayer.FGridIndex := Grid[0].FGridIndex;
+      TmpPlayer.CellX := I;
+      TmpPlayer.CellY := 0;
     end
     else if I > 10 then begin
-      TmpPlayer.CellX := 17;
-      TmpPlayer.CellY := I-11;
+      TmpPlayer.FGridIndex := Grid[1].FGridIndex;
+      TmpPlayer.CellX := I-11;
+      TmpPlayer.CellY := 0;
+//      TmpPlayer.CellX := 17;
+//      TmpPlayer.CellY := I-11;
     end;
 
-    If ( TmpPlayer.CellX = 0 ) and ( TmpPlayer.CellY = 5 ) then
-      FinalTexture := FTextureGK
-      else FinalTexture:= FTexture0;
+    //If ( TmpPlayer.CellX = 0 ) and ( TmpPlayer.CellY = 5 ) then
+    //  FinalTexture := FTextureGK
+      FinalTexture:= FTexture0;
 
     Players[I] :=  TPlayer.Create ( Self, Viewport3D1,
                                     BaseModel, FinalTexture,
@@ -411,11 +415,11 @@ begin
                                     TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].SeasonPlayed, '', ABasePlayer.Surname , ABasePlayer.Stat , ABasePlayer.Skills );
 
     Players[i].Country := RndGenerate(6);
-    Players[I].FGridIndex := Grid[2].FGridIndex;
+    Players[I].FGridIndex := TmpPlayer.FGridIndex;
     Players[I].CellX := TmpPlayer.CellX;
     Players[I].CellY := TmpPlayer.CellY;
 
-
+          { TODO : per liberare il player temporaneo devo copiare le skill nella create}
     TmpPlayer.Free; // libero il player temporaneo (quello senza FModel)
 
   end;
