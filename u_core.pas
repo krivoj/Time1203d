@@ -36,12 +36,12 @@ type
     FConditioning: Integer;
     FInjuryResistance: Integer;
     constructor Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel : TModel3D; const ATexture: TTextureMaterialSource;
-                       InitX, InitY: Single;
                        const AGuid, ATeam, AGuidTeam, ASeasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rSkills : TObjectList<TSkill>
                        );
 
     destructor Destroy; override;
     procedure SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
+    procedure SetBasePosition(BaseX, BaseY: Single);
     function HasSkill ( SkillId, Lvl: Integer ): boolean;
 
     property CellX: integer read FCellX write FCellX;
@@ -80,18 +80,28 @@ destructor TPlayer.Destroy;
 begin
   if FPlayerModel <> nil then
     FPlayerModel.Free;
-
+  Skills.Free;
   inherited;
 end;
 constructor TPlayer.Create(AOwner: TComponent; AViewport: TViewport3D; const BaseModel: TModel3D; const ATexture: TTextureMaterialSource;
-                       InitX, InitY: Single;
-                       const AGuid, ATeam, AGuidTeam, AseasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rSkills : TObjectList<TSkill>
+                           const AGuid, ATeam, AGuidTeam, AseasonPlayed : integer; const aName, aSurname: string; Const rStats:ArrayStats; Const rSkills : TObjectList<TSkill>
                        );
+var
+  I: integer;
+  ASkill: TSkill;
 begin
   if BaseModel <> nil then
-    FPlayerModel := TPlayerModel.Create(AOwner,AViewPort,BaseModel,ATexture,InitX,InitY);
+    FPlayerModel := TPlayerModel.Create(AOwner,AViewPort,BaseModel,ATexture,0,0);
 
-    Skills:= rSkills;
+    Skills:= TObjectList<Tskill>.Create(true);
+    for I := 0 to rSkills.Count -1 do
+    begin
+      ASkill := TSkill.Create( rSkills[I].Id, rSkills[I].level );
+      ASkill.CopyFromTemplate( rSkills[I].Id, rSkills[I].level );
+      Skills.Add(ASkill);
+    end;
+
+
     FGuid:= AGuid;
     FTeam := ATeam;
     FGuidTeam:= AGuidTeam;
@@ -117,7 +127,16 @@ begin
   FGridIndex := AGridIndex;
   FCellX := ACellX;
   FCellY := ACellY;
+
 end;
+procedure TPlayer.SetBasePosition(BaseX, BaseY: Single);
+begin
+  if FPlayerModel = nil then
+    exit;
+  FPlayerModel.FModel.Position.X := BaseX;
+  FPlayerModel.FModel.Position.Y := BaseY;
+end;
+
 function TPlayer.GetGridCells: TGridCell;
 begin
   Result.GridIndex := FGridIndex;

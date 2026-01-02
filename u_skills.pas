@@ -108,7 +108,7 @@ var
 begin
   for I := 0 to OriginalSkills.Count -1 do
   begin
-    if (OriginalSkills[I].Id = _Id) and (OriginalSkills[I].Level= Lvl) then begin
+    if (OriginalSkills[I].Id = _Id) and (OriginalSkills[I].Level= _Level) then begin
       Result := OriginalSkills[I];
       Exit;
     end;

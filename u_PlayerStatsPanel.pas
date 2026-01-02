@@ -219,7 +219,7 @@ begin
   // FILL SKILLS
   if APlayer.Skills.Count = 0 then
     exit;
-                    le skill vann create in tplayer e copiate. le position ci deve essere setbaseposition e non nel create.
+
   for i := 0 to Min(5, APlayer.Skills.Count - 1) do
   begin
     Skill := APlayer.Skills[i];

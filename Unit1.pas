@@ -385,10 +385,7 @@ begin
     ABasePlayer := CreateRandomPlayer (Templates[I] ,0);
 
     //Genero un player temporaneo (senza ModelPlayer) per riempire la classe e passare gli array.
-    TmpPlayer := TPlayer.Create ( Self, nil,
-                                    nil, nil,
-                                    0,
-                                    0,
+    TmpPlayer := TPlayer.Create ( Self, nil, nil, nil,
                                     I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].SeasonPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.Stat , ABasePlayer.Skills );
 
     if I < 10 then begin
@@ -408,18 +405,16 @@ begin
     //  FinalTexture := FTextureGK
       FinalTexture:= FTexture0;
 
-    Players[I] :=  TPlayer.Create ( Self, Viewport3D1,
-                                    BaseModel, FinalTexture,
-                                    Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.X,
-                                    Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y,
+    Players[I] :=  TPlayer.Create ( Self, Viewport3D1, BaseModel, FinalTexture,
                                     TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].SeasonPlayed, '', ABasePlayer.Surname , ABasePlayer.Stat , ABasePlayer.Skills );
 
+    Players[I].SetGridPosition(TmpPlayer.FGridIndex,TmpPlayer.CellX,TmpPlayer.CellY);
     Players[i].Country := RndGenerate(6);
-    Players[I].FGridIndex := TmpPlayer.FGridIndex;
-    Players[I].CellX := TmpPlayer.CellX;
-    Players[I].CellY := TmpPlayer.CellY;
 
-          { TODO : per liberare il player temporaneo devo copiare le skill nella create}
+
+    Players[I].SetBasePosition(Grid[Players[i].FGridIndex].FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.X,Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y);
+
+
     TmpPlayer.Free; // libero il player temporaneo (quello senza FModel)
 
   end;
