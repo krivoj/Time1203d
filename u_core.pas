@@ -2,11 +2,12 @@ unit u_Core;
 
 interface
 uses
-u_PlayerModel, FMX.Viewport3D, system.Classes,FMX.MaterialSources, System.Generics.Collections, u_Types,FMX.Objects3D, u_Skills;
+u_PlayerModel, FMX.Viewport3D, system.Classes,FMX.MaterialSources, FMX.objects,FMX.Types, System.Generics.Collections, u_Types,FMX.Objects3D, u_Skills, u_TileGrid;
 
 type
   TPlayer = class
   private
+    procedure SetGrid ( AGrid: TTileGrid );
     function GetGridCells : TGridCell;
     procedure SetGridCells ( AGridCell: TGridCell );
     function GetDefaultCells : TGridCell ;
@@ -24,6 +25,7 @@ type
 
     FPlayerModel: TPlayerModel;
     FGridIndex: Integer;
+    FGrid: TTileGrid;
     FDefaultCellX: Integer;
     FDefaultCellY: Integer;
     FCellX: Integer;
@@ -40,10 +42,11 @@ type
                        );
 
     destructor Destroy; override;
-    procedure SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
+    procedure SetGridPosition ( AGrid:TTileGrid; AGridIndex, ACellX, ACellY: integer); overload;
     procedure SetBasePosition(BaseX, BaseY: Single);
     function HasSkill ( SkillId, Lvl: Integer ): boolean;
 
+    property Grid: TTileGrid read FGrid write SetGrid;
     property CellX: integer read FCellX write FCellX;
     property CellY: integer read FCellY write FCellY;
     property Cells: TGridCell read GetGridCells write SetGridCells;
@@ -122,12 +125,22 @@ function TPlayer.GetAge: integer;
 begin
   Result := FSeasonPlayed + 18;
 end;
-procedure TPlayer.SetGridPosition ( AGridIndex, ACellX, ACellY: integer);
+procedure TPlayer.SetGridPosition ( AGrid:TTileGrid; AGridIndex, ACellX, ACellY: integer);
 begin
+  FGrid := AGrid;
   FGridIndex := AGridIndex;
   FCellX := ACellX;
   FCellY := ACellY;
+if FPlayerModel = nil then
+    Exit;
 
+  // Cambia il parent del modello 3D alla nuova griglia
+  FPlayerModel.FModel.Parent := TFmxObject(AGrid.FDummyRoot);
+
+  // Aggiorna posizione in base alla cella della griglia
+  FPlayerModel.FModel.Position.X := AGrid.FTiles[ACellX, ACellY].FPlane.Position.X;
+  FPlayerModel.FModel.Position.Y := AGrid.FTiles[ACellX, ACellY].FPlane.Position.Y;
+//  FPlayerModel.FModel.Position.Z := AGrid.FTiles[ACellX, ACellY].FPlane.Position.Z;
 end;
 procedure TPlayer.SetBasePosition(BaseX, BaseY: Single);
 begin
@@ -154,6 +167,13 @@ begin
   FGridIndex := AGridCell.GridIndex;
   FCellX := AGridCell.CellX;
   FCellY := AGridCell.CellY;
+end;
+procedure TPlayer.SetGrid ( AGrid: TTileGrid );
+begin
+  FGrid := AGrid;
+  if FPlayerModel = nil then
+    exit;
+  FPlayerModel.FModel.Parent := TFmxObject(AGrid.FDummyRoot)
 end;
 procedure TPlayer.SetDefaultCells ( AGridCell: TGridCell );
 begin

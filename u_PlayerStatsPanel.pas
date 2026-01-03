@@ -1,4 +1,4 @@
-unit u_PlayerStatsPanel;
+﻿unit u_PlayerStatsPanel;
 
 interface
 
@@ -27,7 +27,7 @@ type
     FSkillRows: array[0..5] of TLayout;
 
     // XP
-    FXPLabel: TLabel;
+    FXPLabel, FStaminaLabel: TLabel;
 
     procedure AddSectionLabel(const AText: string);
     function  AddValueRow(const ACaption: string): TLayout;
@@ -44,10 +44,13 @@ implementation
 constructor TPlayerStatsPanel.Create(AOwner: TComponent);
 var
   i: Integer;
+  HeaderLayout: TLayout;
 begin
   inherited;
 
   Align := TAlignLayout.Left;
+  Height := 400; // metà dello schermo
+  ClipChildren := True;         // taglia tutto quello che va oltre
   Width := 320;
 
   // BACKGROUND
@@ -59,11 +62,25 @@ begin
   FBackground.Opacity := 0.95;
   FBackground.HitTest := True;
 
-  // HEADER
-  FHeaderName := TLabel.Create(Self);
-  FHeaderName.Parent := Self;
-  FHeaderName.Align := TAlignLayout.Top;
-  FHeaderName.Height := 70;
+  // HEADER LAYOUT (aggiunto)
+  HeaderLayout := TLayout.Create(Self);
+  HeaderLayout.Parent := Self;
+  HeaderLayout.Align := TAlignLayout.Top;
+  HeaderLayout.Height := 70;
+
+  // HEADER BACKGROUND (aggiunto)
+  with TRectangle.Create(HeaderLayout) do
+  begin
+    Parent := HeaderLayout;
+    Align := TAlignLayout.Client;
+    Fill.Color := $FF270808;
+    Stroke.Kind := TBrushKind.None;
+  end;
+
+  // HEADER NAME (spostato dentro HeaderLayout)
+  FHeaderName := TLabel.Create(HeaderLayout);
+  FHeaderName.Parent := HeaderLayout;
+  FHeaderName.Align := TAlignLayout.Client;
   FHeaderName.TextSettings.Font.Size := 20;
   FHeaderName.TextSettings.Font.Style := [TFontStyle.fsBold];
   FHeaderName.TextSettings.FontColor := TAlphaColorRec.White;
@@ -71,6 +88,7 @@ begin
   FHeaderName.TextSettings.VertAlign := TTextAlign.Center;
   FHeaderName.StyledSettings := [];
 
+  // HEADER FLAG (immutato, solo parent corretto)
   FHeaderFlag := TImage.Create(FHeaderName);
   FHeaderFlag.Parent := FHeaderName;
   FHeaderFlag.SetBounds(280, 36, 28, 28);
@@ -83,12 +101,32 @@ begin
   FInnerLayout.Align := TAlignLayout.Client;
   FInnerLayout.Padding.Rect := TRectF.Create(8, 8, 8, 8);
 
-  {================ ATTRIBUTES =================}
-  AddSectionLabel(L(STR_ATTRIBUTES));
+  {================ STAMINA =================}
+  FStaminaLabel := TLabel.Create(FInnerLayout);
+  FStaminaLabel.Parent := FInnerLayout;
+  FStaminaLabel.Align := TAlignLayout.Top;
+  FStaminaLabel.Height := 26;
+  FStaminaLabel.Margins.Top := 6;
+  FStaminaLabel.TextAlign := TTextAlign.Center;
+  FStaminaLabel.TextSettings.Font.Size := 16;
+  FStaminaLabel.TextSettings.Font.Style := [TFontStyle.fsBold];
+  FStaminaLabel.TextSettings.FontColor := TAlphaColorRec.Silver;
+  FStaminaLabel.StyledSettings := [];
 
+  {================ SKILLS =================}
+  for i := 5 downto 0 do
+    FSkillRows[i] := AddValueRow('');
+
+  AddSectionLabel(L(STR_SKILLS));
+
+
+  {================ ATTRIBUTES =================}
   SetLength(FStatRows, Length(STAT_NAMES));
-  for i := Low(STAT_NAMES) to High(STAT_NAMES) do
+
+  for i := High(STAT_NAMES) downto Low(STAT_NAMES) do
     FStatRows[i] := AddValueRow(L(STAT_NAMES[i]^));
+
+  AddSectionLabel(L(STR_ATTRIBUTES));
 
   {================ XP =================}
   FXPLabel := TLabel.Create(FInnerLayout);
@@ -96,16 +134,12 @@ begin
   FXPLabel.Align := TAlignLayout.Top;
   FXPLabel.Height := 26;
   FXPLabel.Margins.Top := 6;
+  FXPLabel.TextAlign := TTextAlign.Center;
   FXPLabel.TextSettings.Font.Size := 16;
   FXPLabel.TextSettings.Font.Style := [TFontStyle.fsBold];
   FXPLabel.TextSettings.FontColor := TAlphaColorRec.Silver;
   FXPLabel.StyledSettings := [];
 
-  {================ SKILLS =================}
-  AddSectionLabel(L(STR_SKILLS));
-
-  for i := 0 to 5 do
-    FSkillRows[i] := AddValueRow('');
 end;
 
 {==============================================================================}
@@ -120,10 +154,12 @@ begin
   Lbl.Margins.Top := 10;
   Lbl.Margins.Bottom := 4;
   Lbl.Text := AText;
+  Lbl.TextAlign := TTextAlign.Center;
   Lbl.TextSettings.Font.Size := 18;
   Lbl.TextSettings.Font.Style := [TFontStyle.fsBold];
   Lbl.TextSettings.FontColor := TAlphaColorRec.Gold;
   Lbl.StyledSettings := [];
+
 end;
 
 {==============================================================================}
@@ -167,7 +203,7 @@ begin
   ValLbl.Text := '0';
   ValLbl.TextSettings.Font.Size := 14;
   ValLbl.TextSettings.Font.Style := [TFontStyle.fsBold];
-  ValLbl.TextSettings.FontColor := TAlphaColorRec.Black;
+  ValLbl.TextSettings.FontColor := TAlphaColorRec.White;
   ValLbl.TextSettings.HorzAlign := TTextAlign.Center;
   ValLbl.TextSettings.VertAlign := TTextAlign.Center;
   ValLbl.StyledSettings := [];
@@ -196,7 +232,7 @@ begin
     FHeaderFlag.Bitmap.Clear(TAlphaColorRec.Null);
 
   // ATTRIBUTES
-  for i := Low(FStatRows) to High(FStatRows) do
+  for i := High(FStatRows) Downto Low(FStatRows) do
   begin
     Row := FStatRows[i];
     ValLbl := (Row.Controls[1] as TRectangle).Controls[0] as TLabel;
@@ -204,7 +240,7 @@ begin
   end;
 
   // XP
-  FXPLabel.Text := 'XP: ' + APlayer.XP.ToString;
+  FXPLabel.Text := L(STR_XP) + ': ' + APlayer.XP.ToString;
 
   // RESET SKILLS
   for i := 0 to 5 do
@@ -224,12 +260,17 @@ begin
   begin
     Skill := APlayer.Skills[i];
     Row := FSkillRows[i];
+
     NameLbl := Row.Controls[0] as TLabel;
     ValLbl := (Row.Controls[1] as TRectangle).Controls[0] as TLabel;
 
     NameLbl.Text := L(SKILL_NAMES[Skill.Id]^);
     ValLbl.Text := Skill.Level.ToString;
   end;
+
+  // STAMINA
+  FStaminaLabel.Text := L(STR_STAMINA) + ': ' + APlayer.FStamina.ToString;
+
 end;
 
 {==============================================================================}

@@ -27,7 +27,6 @@ type
   TTileGrid = class
   private
     FViewport: TViewport3D;
-    FDummyRoot: TDummy;
     FDefaultMaterial: TTextureMaterialSource;
     FHighlightMaterial: TTextureMaterialSource; // texture per highlight
     procedure CommonCreate(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer);
@@ -41,6 +40,7 @@ type
       const TextureFiles: TStringArray2D; SharedMaterial: TTextureMaterialSource);
     procedure CreateHighlightMaterialFromBitmap(AOwner: TComponent);
   public
+    FDummyRoot: TDummy;
     FTileSizeX: Single;
     FTileSizeY: Single;
     FTileDepth: Single;

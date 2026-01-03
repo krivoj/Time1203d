@@ -35,6 +35,7 @@ type
 // -----------------------------------------------------------------------------
 var
   STR_ATTRIBUTES, STR_SKILLS: TLangArray;
+  STR_XP, STR_STAMINA: TLangArray;
 
   STR_STAT_SPEED: TLangArray;       // Velocità
   STR_STAT_STRENGTH: TLangArray;    // Forza
@@ -77,6 +78,20 @@ begin
 end;
 
 initialization
+  STR_XP[lgIT] := 'Esperienza';
+  STR_XP[lgEN] := 'Experience';
+  STR_XP[lgFR] := 'Expérience';
+  STR_XP[lgDE] := 'Erfahrung';
+  STR_XP[lgES] := 'Experiencia';
+  STR_XP[lgRU] := 'Опыт';
+
+  STR_STAMINA[lgIT] := 'Resistenza';
+  STR_STAMINA[lgEN] := 'Stamina';
+  STR_STAMINA[lgFR] := 'Endurance';
+  STR_STAMINA[lgDE] := 'Ausdauer';
+  STR_STAMINA[lgES] := 'Resistencia';
+  STR_STAMINA[lgRU] := 'Выносливость';
+
   STR_ATTRIBUTES[lgIT] := 'Attributi';
   STR_ATTRIBUTES[lgEN] := 'Attributes';
   STR_ATTRIBUTES[lgFR] := 'Attributs';

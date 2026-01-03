@@ -166,13 +166,13 @@ begin
           // se lo trova lo mette al posto di selectedPlayer
           aPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY );
           if aPlayer <> nil then begin // se c'è un player lo metto al posto di SelectedPlayer
-            aPlayer.SetGridPosition( SelectedPlayer.FGridIndex , SelectedPlayer.CellX, SelectedPlayer.CellY );
+            aPlayer.SetGridPosition( SelectedPlayer.FGrid, SelectedPlayer.FGridIndex , SelectedPlayer.CellX, SelectedPlayer.CellY );
             aPlayer.FPlayerModel.SetPosition( SelectedPlayer.FPlayerModel.FModel.Position.X, SelectedPlayer.FPlayerModel.FModel.Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z );
           end;
 
 
           // Allinea la posizione di SelectedPlayer alla grid e alla cella di destinazione
-          SelectedPlayer.SetGridPosition( TPlane(Sender).Tag, CellX, CellY );
+          SelectedPlayer.SetGridPosition( SelectedPlayer.FGrid, TPlane(Sender).Tag, CellX, CellY );
           SelectedPlayer.FPlayerModel.SetPosition ( TPlane(Sender).Position.X, TPlane(Sender).Position.Y, SelectedPlayer.FPlayerModel.FModel.Position.Z);
   f1:
           //PlayerStatsPanel.Visible := false;
@@ -388,13 +388,15 @@ begin
     TmpPlayer := TPlayer.Create ( Self, nil, nil, nil,
                                     I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].SeasonPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.Stat , ABasePlayer.Skills );
 
-    if I < 10 then begin
+    if I <= 10 then begin
       TmpPlayer.FGridIndex := Grid[0].FGridIndex;
+      TmpPlayer.FGrid := Grid[0];
       TmpPlayer.CellX := I;
       TmpPlayer.CellY := 0;
     end
     else if I > 10 then begin
       TmpPlayer.FGridIndex := Grid[1].FGridIndex;
+      TmpPlayer.FGrid := Grid[1];
       TmpPlayer.CellX := I-11;
       TmpPlayer.CellY := 0;
 //      TmpPlayer.CellX := 17;
@@ -408,11 +410,12 @@ begin
     Players[I] :=  TPlayer.Create ( Self, Viewport3D1, BaseModel, FinalTexture,
                                     TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].SeasonPlayed, '', ABasePlayer.Surname , ABasePlayer.Stat , ABasePlayer.Skills );
 
-    Players[I].SetGridPosition(TmpPlayer.FGridIndex,TmpPlayer.CellX,TmpPlayer.CellY);
+    Players[i].FGrid := TmpPlayer.FGrid;
+    Players[I].SetGridPosition(TmpPlayer.FGrid ,TmpPlayer.FGridIndex, TmpPlayer.CellX,TmpPlayer.CellY);
     Players[i].Country := RndGenerate(6);
 
 
-    Players[I].SetBasePosition(Grid[Players[i].FGridIndex].FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.X,Board.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y);
+    Players[I].SetBasePosition(Players[i].FGrid.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.X,Players[i].FGrid.FTiles[TmpPlayer.CellX, TmpPlayer.CellY].FPlane.Position.Y);
 
 
     TmpPlayer.Free; // libero il player temporaneo (quello senza FModel)
