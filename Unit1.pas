@@ -9,7 +9,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Intf,
   FireDAC.Stan.Option, FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf,
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FMX.Types3D,FireDAC.Phys.SQLite, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,System.IOUtils,
-  FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Skills, u_PlayerStatsPanel;
+  FMX.Types, u_playerModel, u_core, u_Types, u_PlayerTemplates, u_Skills, u_PlayerStatsPanel, U_PlayerSkillLayout;
 
 Type TMouseStatus = (Ms_None, Ms_Waiting_For_Destination_Cell );
 Type TGameScreen = (gsFormation, gsMatch, gsSubs, gsTactics, gsMarket, gsStandings );
@@ -53,6 +53,7 @@ var
 
   Form1: TForm1;
   PlayerStatsPanel: TPlayerStatsPanel;
+  SkillLayout: TPlayerSkillLayout;
   BtnExit,BtnNewGame,BtnLoadGame: TButton;
   Board, Reserve0, Reserve1: TTileGrid;
   SelectedPlayer: TPlayer;
@@ -66,7 +67,8 @@ var
   MouseStatus : TMouseStatus;
   GameScreen : TGameScreen;
   FormReady: boolean;
-    CamNames: array[0..5] of string = ('Pos X', 'Pos Y', 'Pos Z', 'Rot X', 'Rot Y', 'Rot Z');
+  CamNames: array[0..5] of string = ('Pos X', 'Pos Y', 'Pos Z', 'Rot X', 'Rot Y', 'Rot Z');
+
 implementation
 
 {$R *.fmx}
@@ -186,7 +188,18 @@ begin
       goto f1;
     end;
 
+  end
+
+  else if (GameScreen = gsMatch) then begin
+    if (Button = TMouseButton.mbLeft) and ( MouseStatus= Ms_None) then begin
+      SelectedPlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
+      if SelectedPlayer = nil then exit;
+      SkillLayout.ShowForPlayer(SelectedPlayer);
+    end;
   end;
+
+
+
   Caption :=Format('Hai cliccato DOWN la cella Col=%d Row=%d', [CellX, CellY]);
 end;
 procedure TForm1.TileMouseMove(Sender: TObject; CellX,CellY: integer);
@@ -272,7 +285,9 @@ begin
   PlayerStatsPanel := TPlayerStatsPanel.Create(Viewport3d1);
   PlayerStatsPanel.Parent := Form1;
   PlayerStatsPanel.Visible := False;
-
+ // SkillLayout := TPlayerSkillLayout.Create(Viewport3d1);
+ // SkillLayout.Parent := Form1;
+ // SkillLayout.Visible := False;
 // creo bitmap dinamica
 // 1️⃣ Creo bitmap dinamica del campo
   FieldBitmap := CreateSoccerFieldBitmap(
@@ -356,6 +371,8 @@ var
   S: ArrayStats;
   ABasePlayer: PlayerTemplate;
   TmpPlayer: TPlayer;
+  TeamCells: ArrayCells;
+  Cell1: TPoint;
 begin
 // Carica il modello base UNA SOLA VOLTA
   BaseModel := TModel3D.Create(Self);
@@ -380,7 +397,9 @@ begin
 
   ModifyPixels(FTextureGK.Texture.Canvas.Bitmap, TAlphaColorRec.Red , TAlphaColorRec.Gray  , TAlphaColorRec.Blue, TAlphaColorRec.Gray ,TAlphaColorRec.Lime, TAlphaColorRec.Black );
   ModifyPixels(FTexture0.Texture.Canvas.Bitmap, TAlphaColorRec.Red , TAlphaColorRec.Red  , TAlphaColorRec.Blue, TAlphaColorRec.Blue ,TAlphaColorRec.Lime, TAlphaColorRec.White );
+  ModifyPixels(FTexture1.Texture.Canvas.Bitmap, TAlphaColorRec.Red , TAlphaColorRec.Yellow  , TAlphaColorRec.Blue, TAlphaColorRec.Lime ,TAlphaColorRec.Lime, TAlphaColorRec.Lime );
 
+  FillTeamCells ( TeamCells );
   for I := 0 to 21 do begin
     ABasePlayer := CreateRandomPlayer (Templates[I] ,0);
 
@@ -388,24 +407,37 @@ begin
     TmpPlayer := TPlayer.Create ( Self, nil, nil, nil,
                                     I+1{Guid}, 0{Team}, 0{GuidTeam}, Templates[I].SeasonPlayed{Matchesplayed}, '', Templates[I].Surname ,ABasePlayer.Stat , ABasePlayer.Skills );
 
-    if I <= 10 then begin
-      TmpPlayer.FGridIndex := Grid[0].FGridIndex;
+    if I mod 2 = 0  then begin
+      TmpPlayer.FGridIndex := 2;
+      TmpPlayer.FGrid := Board;
+      TmpPlayer.FTeam := 0;
+      TmpPlayer.CellX := TeamCells[I].X;
+      TmpPlayer.CellY := TeamCells[I].Y;
+      {TmpPlayer.FGridIndex := Grid[0].FGridIndex;
       TmpPlayer.FGrid := Grid[0];
       TmpPlayer.CellX := I;
-      TmpPlayer.CellY := 0;
+      TmpPlayer.CellY := 0;  }
     end
-    else if I > 10 then begin
-      TmpPlayer.FGridIndex := Grid[1].FGridIndex;
+    else if I mod 2 <> 0 then begin
+      TmpPlayer.FGridIndex := 2;
+      TmpPlayer.FGrid := Board;
+      TmpPlayer.FTeam := 1;
+      Cell1 := MirrorCell (TeamCells[I]);
+      TmpPlayer.CellX := Cell1.X;
+      TmpPlayer.CellY := Cell1.Y;
+     { TmpPlayer.FGridIndex := Grid[1].FGridIndex;
       TmpPlayer.FGrid := Grid[1];
       TmpPlayer.CellX := I-11;
-      TmpPlayer.CellY := 0;
-//      TmpPlayer.CellX := 17;
-//      TmpPlayer.CellY := I-11;
+      TmpPlayer.CellY := 0;      }
     end;
 
-    //If ( TmpPlayer.CellX = 0 ) and ( TmpPlayer.CellY = 5 ) then
-    //  FinalTexture := FTextureGK
-      FinalTexture:= FTexture0;
+    If ( TmpPlayer.CellX = 0 ) Or ( TmpPlayer.CellX = 17 ) then
+      FinalTexture := FTextureGK
+    else begin
+      if TmpPlayer.FTeam = 1 then
+        FinalTexture:= FTexture0
+        else FinalTexture:= FTexture1;
+    end;
 
     Players[I] :=  TPlayer.Create ( Self, Viewport3D1, BaseModel, FinalTexture,
                                     TmpPlayer.FGuid , 0, 0{GuiTeam}, Templates[I].SeasonPlayed, '', ABasePlayer.Surname , ABasePlayer.Stat , ABasePlayer.Skills );
@@ -525,6 +557,7 @@ begin
       end;
   end;
 end;
+
 end.
 
 
