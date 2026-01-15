@@ -46,6 +46,7 @@ type
     function GetPlayerFromGrid ( GridIndex, CellX, CellY: integer): TPlayer;
 
     procedure CreateTestPlayers;
+    procedure CreateBall;
     procedure CreateGround;
   public
     end;
@@ -336,6 +337,7 @@ begin
   Reserve1.SetBasePosition(0, 11);
 
   CreateTestPlayers;
+  CreateBall;
 
   Form1.WindowState := TWindowState.wsMaximized;
   GameScreen := gsMatch;//gsFormation;
@@ -370,6 +372,20 @@ begin
   Close;
 end;
 
+procedure TForm1.CreateBall;
+var
+  BallModel: TModel3D;
+  FTextureBall: TTextureMaterialSource;
+begin
+  BallModel := TModel3D.Create(Self);
+  BallModel.LoadFromFile(DirAssets + 'Ball.obj');
+  BallModel.Visible := False; // non mostrarlo nella scena
+  BallModel.Parent := Viewport3D1;
+  FTextureBall := TTextureMaterialSource.Create(Self);
+  FTextureBall.Parent := Viewport3D1;
+  FTextureBall.Texture.LoadFromFile(DirAssets + 'Ball.');
+//  BallModel.Position.X :=
+end;
 procedure TForm1.CreateTestPlayers;
 var
   i, row, col, Count: Integer;
