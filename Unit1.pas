@@ -69,7 +69,7 @@ var
   GameScreen : TGameScreen;
   FormReady: boolean;
   CamNames: array[0..5] of string = ('Pos X', 'Pos Y', 'Pos Z', 'Rot X', 'Rot Y', 'Rot Z');
-
+  OldCellX, OldCellY: integer;
 implementation
 
 {$R *.fmx}
@@ -207,6 +207,13 @@ procedure TForm1.TileMouseMove(Sender: TObject; CellX,CellY: integer);
 var
   APlayer: TPlayer;
 begin
+  if (CellX <> OldCellX) or (CellY <> OldCellY) then begin
+    Board.ClearPassArrow;
+    Board.DrawPassArrow(3, 1, CellX, CellY, ptHigh);
+    OldCellX := CellX;
+    OldCellY := CellY;
+  end;
+
   APlayer := GetPlayerFromGrid ( TPlane(Sender).Tag, CellX, CellY);
   if APlayer = Nil then exit;
 
@@ -214,6 +221,7 @@ begin
   PlayerStatsPanel.BuildFromPlayer(APlayer);
   PlayerStatsPanel.Visible := True;
   PlayerStatsPanel.BringToFront ;
+
 
 end;
 
@@ -567,7 +575,7 @@ begin
     ASkill.Level.ToString
   );
 // passaggio basso
-//TileGrid.DrawPassArrow(4, 2, 8, 2, ptLow);
+Board.DrawPassArrow(14, 4, 7, 3, ptLow);
 
 // passaggio alto
 Board.DrawPassArrow(3, 1, 6, 5, ptHigh);

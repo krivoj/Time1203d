@@ -35,6 +35,7 @@ type
   TTileGrid = class
   private
     FViewport: TViewport3D;
+    FPassArrowRoot: TDummy;
     FDefaultMaterial: TTextureMaterialSource;
     FHighlightMaterial: TTextureMaterialSource; // texture per highlight
     procedure CommonCreate(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer);
@@ -81,6 +82,7 @@ type
       ToX, ToY: Integer;
       PassType: TPassType
     );
+    procedure ClearPassArrow;
   end;
 
 function CreateSoccerFieldBitmap(TileWidth, TileHeight: Integer;
@@ -154,6 +156,8 @@ end;
 procedure TTileGrid.CommonCreate(AOwner: TComponent; AViewport: TViewport3D; Index, Cols, Rows: Integer);
 begin
   FViewport := AViewport;
+  FPassArrowRoot := TDummy.Create(FDummyRoot);
+  FPassArrowRoot.Parent := FDummyRoot;
   FTileSizeX := 1.0;
   FTileSizeY := 1.0;
   FTileDepth := 0.08;
@@ -508,70 +512,93 @@ procedure TTileGrid.DrawPassArrow(
   PassType: TPassType
 );
 const
-  SEGMENTS = 10; // più segmenti = curva più liscia
+  SEGMENTS = 30; // più segmenti = arco più liscio
 var
   i: Integer;
   ArrowPlane: TPlane;
-  Mat: TTextureMaterialSource;
-  Bmp: TBitmap;
+  MatLine : TTextureMaterialSource;
   StartX, StartY, EndX, EndY: Single;
   PosX, PosY, PosZ: Single;
+  NextX, NextY, NextZ: Single;
   Angle: Single;
-  DistX, DistY, Dist: Single;
+  DistX, DistY: Single;
   t: Single;
-  HeightOffset: Single;
+  MaxHeight: Single;
+  SegmentLength: Single;
 begin
   StartX := FromX * FTileSizeX + FTileSizeX / 2;
-  StartY := FromY * FTileSizeY + FTileSizeY / 2;
+  StartY := (FRows - 1 - FromY) * FTileSizeY + FTileSizeY / 2;
+  //StartY := FromY * FTileSizeY + FTileSizeY / 2;
   EndX := ToX * FTileSizeX + FTileSizeX / 2;
-  EndY := ToY * FTileSizeY + FTileSizeY / 2;
+  EndY   := (FRows - 1 - ToY)   * FTileSizeY + FTileSizeY / 2;
+  //EndY := ToY * FTileSizeY + FTileSizeY / 2;
+
 
   DistX := EndX - StartX;
   DistY := EndY - StartY;
-  Dist := Hypot(DistX, DistY);
 
-  Bmp := CreateArrowBitmap(256, 64, PassType = ptHigh);
-  Mat := TTextureMaterialSource.Create(FDummyRoot);
-  Mat.Texture.Assign(Bmp);
-  Bmp.Free;
+  if PassType = ptHigh then
+    MaxHeight := 1.8
+  else
+    MaxHeight := 0.05;
+
+  MatLine := TTextureMaterialSource.Create(FDummyRoot);
+  MatLine.Texture.Assign(CreateArrowBitmap(64, 64, False)); // texture senza freccia
+
 
   for i := 0 to SEGMENTS - 1 do
   begin
-    t := i / (SEGMENTS - 1); // da 0 a 1 lungo la parabola
+    t := i / (SEGMENTS - 1);
 
     // posizione interpolata
     PosX := StartX + DistX * t;
     PosY := StartY + DistY * t;
 
-    // altezza: parabola semplice y = 4h * t * (1-t)
     if PassType = ptHigh then
-      HeightOffset := 0.8 * 4 * t * (1 - t) // massima altezza al centro
+      PosZ := FTileDepth / 2 + MaxHeight * Sin(t * Pi)
     else
-      HeightOffset := 0.02;
+      PosZ := FTileDepth / 2 + MaxHeight;
 
-    PosZ := FTileDepth / 2 + HeightOffset;
-
-    // calcolo angolo per ruotare la freccia lungo la direzione locale
-    if i < SEGMENTS - 1 then
-      Angle := RadToDeg(ArcTan2(
-        (StartY + DistY * ((i+1)/(SEGMENTS-1))) - PosY,
-        (StartX + DistX * ((i+1)/(SEGMENTS-1))) - PosX
-      ))
+    // prossima posizione
+    t := (i + 1) / (SEGMENTS - 1);
+    NextX := StartX + DistX * t;
+    NextY := StartY + DistY * t;
+    if PassType = ptHigh then
+      NextZ := FTileDepth / 2 + MaxHeight * Sin(t * Pi)
     else
-      Angle := RadToDeg(ArcTan2(DistY, DistX));
+      NextZ := FTileDepth / 2 + MaxHeight;
 
-    ArrowPlane := TPlane.Create(FDummyRoot);
+    Angle := RadToDeg(ArcTan2(NextY - PosY, NextX - PosX));
+    SegmentLength := Sqrt(Sqr(NextX - PosX) + Sqr(NextY - PosY) + Sqr(NextZ - PosZ));
+
+    ArrowPlane := TPlane.Create(FPassArrowRoot);
     ArrowPlane.Parent := FDummyRoot;
-    ArrowPlane.Width := Dist / SEGMENTS + 0.05; // lunghezza segmento
+    ArrowPlane.Width := SegmentLength;
     ArrowPlane.Height := 0.6;
     ArrowPlane.Position.Point := Point3D(PosX, PosY, PosZ);
     ArrowPlane.RotationAngle.Z := Angle;
-    ArrowPlane.MaterialSource := Mat;
-    ArrowPlane.Opacity := 0.9;
+
+    ArrowPlane.MaterialSource := MatLine;
+
+    ArrowPlane.Opacity := 0.4;
     ArrowPlane.TwoSide := True;
     ArrowPlane.HitTest := False;
   end;
 end;
+procedure TTileGrid.ClearPassArrow;
+begin
+  if Assigned(FPassArrowRoot) then
+  begin
+    FPassArrowRoot.DeleteChildren;
+    FPassArrowRoot.DisposeOf;
+    FPassArrowRoot := nil;
+  end;
 
+  // ricrea subito il root pulito
+  FPassArrowRoot := TDummy.Create(FDummyRoot);
+  FPassArrowRoot.Parent := FDummyRoot;
+
+  FViewport.Repaint;
+end;
 end.
 
