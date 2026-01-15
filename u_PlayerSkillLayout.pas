@@ -30,6 +30,7 @@ type
   TPlayerSkillLayout = class(TLayout)
   private
     FBackground: TRectangle;
+    FContent: TLayout;
     FTiles: TObjectList<TSkillTile>;
     FPlayer: TPlayer;
     FOnSkillSelected: TOnSkillSelected;
@@ -71,6 +72,12 @@ begin
   FBackground.Stroke.Kind := TBrushKind.None;
   FBackground.XRadius := 12;
   FBackground.YRadius := 12;
+
+  // Content layout (SOPRA il background)
+  FContent := TLayout.Create(Self);
+  FContent.Parent := Self;
+  FContent.Align := TAlignLayout.Client;
+ // FContent.Padding.SetBounds(0, 6, 0, 6);
 end;
 
 destructor TPlayerSkillLayout.Destroy;
@@ -97,13 +104,15 @@ begin
     Tile := TSkillTile.Create;
     Tile.Skill := APlayer.Skills[i];
 
-    Lbl := TLabel.Create(Self);
-    Lbl.Parent := Self;
+    Lbl := TLabel.Create(FContent);
+    Lbl.Parent := FContent;
     Lbl.Align := TAlignLayout.Top;
     Lbl.Height := 36;
 //    Lbl.Margins.SetBounds(12, 8, 12, 0);
     Lbl.Text :=
       Tile.Skill.GetName + '  Lv ' + Tile.Skill.Level.ToString;
+  Lbl.StyledSettings := [];
+
     Lbl.TextSettings.Font.Size := 14;
     Lbl.TextSettings.FontColor := TAlphaColors.White;
     Lbl.HitTest := True;

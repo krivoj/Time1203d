@@ -3,12 +3,20 @@ unit u_TileGrid;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.UITypes, System.Generics.Collections, system.Types,
+  System.SysUtils, System.Classes, System.UITypes, System.Generics.Collections, system.Types, System.Math,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Objects3D,
   FMX.MaterialSources, FMX.Controls3D, FMX.Viewport3D, FMX.Types3D, System.Math.Vectors;
 
+const
+  SEGMENTS = 10;
+  MAX_HEIGHT = 0.8; // quanto "sale" il pallone
+
 type
   TStringArray2D = array of array of string;
+
+type
+  TPassType = (ptLow, ptHigh);
+
 
   TModelTile = class
   private
@@ -68,15 +76,22 @@ type
     procedure ClearHighlights;
     procedure HighlightFormationsCols;
     procedure HighlightAllCells;
+    procedure DrawPassArrow(
+      FromX, FromY,
+      ToX, ToY: Integer;
+      PassType: TPassType
+    );
   end;
 
 function CreateSoccerFieldBitmap(TileWidth, TileHeight: Integer;
   BaseColor, BorderColor: TAlphaColor;
   BorderLeft, BorderTop, BorderRight, BorderBottom: Integer): TBitmap;
+function CreateArrowBitmap(Width, Height: Integer;
+  IsHighPass: Boolean): TBitmap;
 
 implementation
 
-uses Unit1, System.Math, u_core;
+uses Unit1, u_core;
 
 { ===== TModelTile ===== }
 
@@ -433,6 +448,129 @@ begin
     for x := 0 to FCols - 1 do
       for y := 0 to FRows - 1 do
         HighlightCell(x, y);
+end;
+function CreateArrowBitmap(Width, Height: Integer;
+  IsHighPass: Boolean): TBitmap;
+var
+  Path: TPathData;
+  MidY: Single;
+begin
+  Result := TBitmap.Create(Width, Height);
+  Result.Clear(TAlphaColors.Null);
+
+  Path := TPathData.Create;
+  try
+    if IsHighPass then
+    begin
+      // curva (passaggio alto) più pronunciata
+      Path.MoveTo(PointF(10, Height - 10));
+      MidY := 10; // altezza massima della curva
+      Path.CurveTo(
+        PointF(Width div 2, MidY),
+        PointF(Width div 2, MidY),
+        PointF(Width - 20, Height - 20)
+      );
+    end
+    else
+    begin
+      // linea dritta (passaggio basso)
+      Path.MoveTo(PointF(10, Height div 2));
+      Path.LineTo(PointF(Width - 20, Height div 2));
+    end;
+
+    Result.Canvas.BeginScene;
+    Result.Canvas.Stroke.Color := TAlphaColors.Yellow;
+    Result.Canvas.Stroke.Thickness := 4;
+    Result.Canvas.DrawPath(Path, 1);
+
+    // punta freccia
+    if IsHighPass then
+      MidY := 10
+    else
+      MidY := Height div 2;
+
+    Result.Canvas.Fill.Color := TAlphaColors.Yellow;
+    Result.Canvas.FillPolygon([
+      PointF(Width - 20, MidY - 8),
+      PointF(Width - 5, MidY),
+      PointF(Width - 20, MidY + 8)
+    ], 1);
+
+    Result.Canvas.EndScene;
+  finally
+    Path.Free;
+  end;
+end;
+
+procedure TTileGrid.DrawPassArrow(
+  FromX, FromY,
+  ToX, ToY: Integer;
+  PassType: TPassType
+);
+const
+  SEGMENTS = 10; // più segmenti = curva più liscia
+var
+  i: Integer;
+  ArrowPlane: TPlane;
+  Mat: TTextureMaterialSource;
+  Bmp: TBitmap;
+  StartX, StartY, EndX, EndY: Single;
+  PosX, PosY, PosZ: Single;
+  Angle: Single;
+  DistX, DistY, Dist: Single;
+  t: Single;
+  HeightOffset: Single;
+begin
+  StartX := FromX * FTileSizeX + FTileSizeX / 2;
+  StartY := FromY * FTileSizeY + FTileSizeY / 2;
+  EndX := ToX * FTileSizeX + FTileSizeX / 2;
+  EndY := ToY * FTileSizeY + FTileSizeY / 2;
+
+  DistX := EndX - StartX;
+  DistY := EndY - StartY;
+  Dist := Hypot(DistX, DistY);
+
+  Bmp := CreateArrowBitmap(256, 64, PassType = ptHigh);
+  Mat := TTextureMaterialSource.Create(FDummyRoot);
+  Mat.Texture.Assign(Bmp);
+  Bmp.Free;
+
+  for i := 0 to SEGMENTS - 1 do
+  begin
+    t := i / (SEGMENTS - 1); // da 0 a 1 lungo la parabola
+
+    // posizione interpolata
+    PosX := StartX + DistX * t;
+    PosY := StartY + DistY * t;
+
+    // altezza: parabola semplice y = 4h * t * (1-t)
+    if PassType = ptHigh then
+      HeightOffset := 0.8 * 4 * t * (1 - t) // massima altezza al centro
+    else
+      HeightOffset := 0.02;
+
+    PosZ := FTileDepth / 2 + HeightOffset;
+
+    // calcolo angolo per ruotare la freccia lungo la direzione locale
+    if i < SEGMENTS - 1 then
+      Angle := RadToDeg(ArcTan2(
+        (StartY + DistY * ((i+1)/(SEGMENTS-1))) - PosY,
+        (StartX + DistX * ((i+1)/(SEGMENTS-1))) - PosX
+      ))
+    else
+      Angle := RadToDeg(ArcTan2(DistY, DistX));
+
+    ArrowPlane := TPlane.Create(FDummyRoot);
+    ArrowPlane.Parent := FDummyRoot;
+    ArrowPlane.Width := Dist / SEGMENTS + 0.05; // lunghezza segmento
+    ArrowPlane.Height := 0.6;
+    ArrowPlane.Position.Point := Point3D(PosX, PosY, PosZ);
+    ArrowPlane.RotationAngle.Z := Angle;
+    ArrowPlane.MaterialSource := Mat;
+    ArrowPlane.Opacity := 0.9;
+    ArrowPlane.TwoSide := True;
+    ArrowPlane.HitTest := False;
+  end;
 end;
 
 end.

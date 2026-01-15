@@ -566,6 +566,11 @@ begin
     ASkill.GetName +
     ASkill.Level.ToString
   );
+// passaggio basso
+//TileGrid.DrawPassArrow(4, 2, 8, 2, ptLow);
+
+// passaggio alto
+Board.DrawPassArrow(3, 1, 6, 5, ptHigh);
 end;
 end.
 
