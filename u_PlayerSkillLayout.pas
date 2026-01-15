@@ -3,36 +3,42 @@ unit u_PlayerSkillLayout;
 interface
 
 uses
-  System.Classes, System.SysUtils, System.Types, System.Generics.collections,System.UITypes,System.Math.Vectors,
-  FMX.Types, FMX.Controls, FMX.Layouts, FMX.Objects, FMX.Viewport3D,
-  FMX.Objects3D, FMX.Controls3D, FMX.MaterialSources, FMX.Graphics,
-  u_Core, u_Skills;
+  System.Classes,
+  System.SysUtils,
+  System.Generics.Collections,
+  System.Types,
+  System.UITypes,
+  FMX.Graphics,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Layouts,
+  FMX.Objects,
+  FMX.StdCtrls,
+  u_Core,
+  u_Skills;
 
 type
   TOnSkillSelected = procedure(ASkill: TSkill) of object;
 
+type
   TSkillTile = class
   public
-    Plane: TPlane;
+    LabelCtrl: TLabel;
     Skill: TSkill;
   end;
 
   TPlayerSkillLayout = class(TLayout)
   private
-    FViewport: TViewport3D;
     FBackground: TRectangle;
-    FRoot3D: TDummy;
     FTiles: TObjectList<TSkillTile>;
     FPlayer: TPlayer;
     FOnSkillSelected: TOnSkillSelected;
 
-    procedure TileMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Single; RayPos, RayDir: TVector3D);
+    procedure SkillLabelClick(Sender: TObject);
     procedure ClearTiles;
-    procedure UpdateSize(Rows: Integer);
 
   public
-    constructor Create(AOwner: TComponent; AViewport: TViewport3D); reintroduce;
+    constructor Create(AOwner: TComponent); reintroduce;
     destructor Destroy; override;
 
     procedure ShowForPlayer(APlayer: TPlayer);
@@ -46,95 +52,70 @@ implementation
 
 { TPlayerSkillLayout }
 
-constructor TPlayerSkillLayout.Create(AOwner: TComponent; AViewport: TViewport3D);
+constructor TPlayerSkillLayout.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FViewport := AViewport;
-  Parent := AViewport;
-  Align := TAlignLayout.Contents;
+  Align := TAlignLayout.Center;
+  Width := 260;
   HitTest := True;
   Visible := False;
 
   FTiles := TObjectList<TSkillTile>.Create(True);
 
-  // overlay background (blocca input)
+  // Background
   FBackground := TRectangle.Create(Self);
   FBackground.Parent := Self;
-  FBackground.Align := TAlignLayout.Center;
+  FBackground.Align := TAlignLayout.Client;
   FBackground.Fill.Color := $FF1E1E1E;
   FBackground.Stroke.Kind := TBrushKind.None;
   FBackground.XRadius := 12;
   FBackground.YRadius := 12;
-  FBackground.HitTest := True;
-
-  // root 3D delle skill
-  FRoot3D := TDummy.Create(FViewport);
-  FRoot3D.Parent := FViewport;
 end;
 
 destructor TPlayerSkillLayout.Destroy;
 begin
   ClearTiles;
   FTiles.Free;
-
-  if FRoot3D <> nil then
-    FRoot3D.DisposeOf;
-
   inherited;
 end;
 
 procedure TPlayerSkillLayout.ShowForPlayer(APlayer: TPlayer);
 var
-  i, Rows: Integer;
+  i: Integer;
   Tile: TSkillTile;
-  Plane: TPlane;
-  Mat: TTextureMaterialSource;
-  Bmp: TBitmap;
+  Lbl: TLabel;
 begin
-  if (APlayer = nil) or (APlayer.Skills.Count = 0) then Exit;
+  if (APlayer = nil) or (APlayer.Skills.Count = 0) then
+    Exit;
 
   ClearTiles;
-
   FPlayer := APlayer;
-  Rows := APlayer.Skills.Count;
 
-  for i := 0 to Rows - 1 do
+  for i := 0 to APlayer.Skills.Count - 1 do
   begin
     Tile := TSkillTile.Create;
     Tile.Skill := APlayer.Skills[i];
 
-    // bitmap skill
-    Bmp := TBitmap.Create(256, 64);
-    Bmp.Clear(TAlphaColors.Null);
-    Bmp.Canvas.BeginScene;
-    Bmp.Canvas.Fill.Color := TAlphaColors.White;
-    Bmp.Canvas.FillText(
-      RectF(0, 0, 256, 64),
-      Tile.Skill.GetName + '  Lv ' + Tile.Skill.Level.ToString,
-      False, 1, [], TTextAlign.Center, TTextAlign.Center
-    );
-    Bmp.Canvas.EndScene;
+    Lbl := TLabel.Create(Self);
+    Lbl.Parent := Self;
+    Lbl.Align := TAlignLayout.Top;
+    Lbl.Height := 36;
+//    Lbl.Margins.SetBounds(12, 8, 12, 0);
+    Lbl.Text :=
+      Tile.Skill.GetName + '  Lv ' + Tile.Skill.Level.ToString;
+    Lbl.TextSettings.Font.Size := 14;
+    Lbl.TextSettings.FontColor := TAlphaColors.White;
+    Lbl.HitTest := True;
+    Lbl.Cursor := crHandPoint;
+    Lbl.TagObject := Tile;
+    Lbl.OnClick := SkillLabelClick;
 
-    Mat := TTextureMaterialSource.Create(Self);
-    Mat.Texture.Assign(Bmp);
-    Bmp.Free;
-
-    Plane := TPlane.Create(FRoot3D);
-    Plane.Parent := FRoot3D;
-    Plane.Width := 1.8;
-    Plane.Height := 0.4;
-    Plane.Position.Point := Point3D(0, -i * 0.45, 0);
-    Plane.MaterialSource := Mat;
-    Plane.HitTest := True;
-    Plane.TagObject := Tile;
-    Plane.OnMouseDown := TileMouseDown;
-
-    Tile.Plane := Plane;
+    Tile.LabelCtrl := Lbl;
     FTiles.Add(Tile);
   end;
 
-  UpdateSize(Rows);
+  Height := APlayer.Skills.Count * 44 + 20;
   Visible := True;
 end;
 
@@ -148,29 +129,22 @@ var
   Tile: TSkillTile;
 begin
   for Tile in FTiles do
-    if Tile.Plane <> nil then
-      Tile.Plane.DisposeOf;
+    if Assigned(Tile.LabelCtrl) then
+      Tile.LabelCtrl.DisposeOf;
 
   FTiles.Clear;
 end;
 
-procedure TPlayerSkillLayout.TileMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Single; RayPos, RayDir: TVector3D);
+procedure TPlayerSkillLayout.SkillLabelClick(Sender: TObject);
 var
   Tile: TSkillTile;
 begin
-  Tile := (Sender as TPlane).TagObject as TSkillTile;
+  Tile := (Sender as TLabel).TagObject as TSkillTile;
 
   if Assigned(FOnSkillSelected) then
     FOnSkillSelected(Tile.Skill);
 
   Hide;
-end;
-
-procedure TPlayerSkillLayout.UpdateSize(Rows: Integer);
-begin
-  FBackground.Width  := 220;
-  FBackground.Height := Rows * 80;
 end;
 
 end.

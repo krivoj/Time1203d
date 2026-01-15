@@ -30,6 +30,7 @@ type
     { Private declarations }
     MenuLayout: TLayout;
     BtnNewGame, BtnLoadGame, BtnExit: TSpeedButton;
+    procedure MySkillClick(ASkill: TSkill);
     procedure InitMenu;
     procedure InitGame;
     procedure SetupLayout;
@@ -285,9 +286,10 @@ begin
   PlayerStatsPanel := TPlayerStatsPanel.Create(Viewport3d1);
   PlayerStatsPanel.Parent := Form1;
   PlayerStatsPanel.Visible := False;
- // SkillLayout := TPlayerSkillLayout.Create(Viewport3d1);
- // SkillLayout.Parent := Form1;
- // SkillLayout.Visible := False;
+  SkillLayout := TPlayerSkillLayout.Create(Viewport3d1);
+  SkillLayout.Parent := Form1;
+  SkillLayout.Visible := False;
+  SkillLayout.OnSkillSelected := MySkillClick;
 // creo bitmap dinamica
 // 1️⃣ Creo bitmap dinamica del campo
   FieldBitmap := CreateSoccerFieldBitmap(
@@ -328,7 +330,7 @@ begin
   CreateTestPlayers;
 
   Form1.WindowState := TWindowState.wsMaximized;
-  GameScreen := gsFormation;
+  GameScreen := gsMatch;//gsFormation;
   MenuLayout.Visible := False;
   // Qui puoi inizializzare la griglia o altri oggetti 3D
   Viewport3D1.Visible := True;
@@ -557,7 +559,14 @@ begin
       end;
   end;
 end;
-
+procedure TForm1.MySkillClick(ASkill: TSkill);
+begin
+  ShowMessage(
+    ASkill.ID.ToString +
+    ASkill.GetName +
+    ASkill.Level.ToString
+  );
+end;
 end.
 
 
